@@ -1,0 +1,26 @@
+---
+title: "Project1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("main.R")
+```
+\newcommand{\vect}[1]{\ensuremath{\boldsymbol{\mathbf{#1}}}} %matrix: \newcommand{\matr[1]{\ensuremath{\boldsymbol{\mathbf{#1}}}}
+
+$$E(r(X)) = \mu_r = 0$$
+
+$$Var(r(X)) = \sigma_r^2$$
+ $$ Cor(r(X), r(X')) = \rho_r(\tau) $$
+ 
+ $$\tau = \frac{| X - X'|}{10}$$
+ 
+ $(r(x) | x\in D = [1, 50]\subset \mathbb{R}^1)$
+ 
+ $\vect{X}$
+```{r}
+p1
+```
+ 
+ 
