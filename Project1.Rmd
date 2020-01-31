@@ -1,14 +1,18 @@
 ---
 title: "Project1"
 output: html_document
+header-includes:
+   - \usepackage{amsmath}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 source("main.R")
 ```
-\newcommand{\vect}[1]{\ensuremath{\boldsymbol{\mathbf{#1}}}} %matrix: \newcommand{\matr[1]{\ensuremath{\boldsymbol{\mathbf{#1}}}}
-
+\newcommand{\vect}[1]{\boldsymbol{\mathbf{#1}}}
+\newcommand{\matr}[1]{\boldsymbol{\mathbf{#1}}}
+\newcommand{\det}{det}
+\newcommand{\exp}{exp}
 $$E(r(X)) = \mu_r = 0$$
 
 $$Var(r(X)) = \sigma_r^2$$
@@ -21,6 +25,14 @@ $$Var(r(X)) = \sigma_r^2$$
  $\vect{X}$
 ```{r}
 p1
+p2
 ```
- 
- 
+
+ # Problem 1b)
+ Want to specify pdf of a guassian prior rf.
+
+Let $\vect r \sim p(\vect r) = \phi_n(\vect r | \mu_r\vect 1_n, \sigma^2_r \matr \Sigma_r^\rho$
+With $\matr \Sigma_r^p$ covariance matrix defined by the corrolation function given in problem 1a) for a given $\kappa$. To start off we select $\kappa = 0.5$.
+
+This would give use the following pdf:
+$$f_{\vect r}(\vect r | \mu_r, \sigma_r^2\matr \Sigma_r^\rho)= (2\pi)^{-\frac{n}{2}}\det(\matr\Sigma_r^\rho)^{-\frac{1}{2}}\exp\left(-\frac{1}{2}\left(\vect r - \mu_r\vect 1_n\right)^T\matr\Sigma_r^\rho\left(\vect r - \mu_r\vect 1_n\right)\right)$$

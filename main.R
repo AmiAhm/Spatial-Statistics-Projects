@@ -1,42 +1,40 @@
 library(ggplot2)
 library(reshape2)
 library(latex2exp)
+library(geoR)
+library(foreach)
 
-tau_10 <- function(X, Y){
-  return(abs(X-Y)/10)
+# Plotting 1a)
+from = 1
+to = 50
+xx <- seq(from = from, to = to, by = 1)
+vs.exponential <- c(1.1,1.9)
+vs.matern <- c(1, 3)
+sigmas <- c(1, 5)
+
+
+plot.covariance <- function(cov.model = "matern", kappa = 2, sigma2 = 1, from = 1, to = 50, by = 0.01 , phi = 1){
+  x <- seq(from = from ,to = to, by = by)
+  y <- cov.spatial(x, cov.pars=c(sigma2, phi), cov.model = cov.model, kappa = kappa)
+  p <- ggplot(as.data.frame(cbind(x, y)), aes(x = x, y = y)) + geom_line() + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho(\\tau)$"))
+  return(p)
 }
 
-get_powered_exponential <- function(v){
-  if(v < 1 | v > 1.9){
-    warning("Illegal v, should be between 1 and 1.9")
-  }                            
-  
-  powered_exponential <- function(tau){
-    pt <- exp(-(tau^v))
-    return(pt)
-    
-  }
-  return(powered_exponential)
+for.parameters.do <- function(param1, param2, param3, fun, ...){
+  result <- list()
+  foreach(p1 = param1, p2 = param2, p3 = param3)%do% result <- c(result, fun(p1, p2, p3, ...))
+  return(result)
 }
 
+plot.covariance()
 
-get_matern <- function(sigma2){
-  if(v < 1 | v > 5){
-    warning("Illegal sigma2, should be between 1 and 1.9")
-  }
+variogram <- function(x, ...){
+  return(1-cov.spatial(x, ...))
 }
 
-# TODO : LEQ or >< in warnings 
+p2 <- curve(variogram(x, cov.pars=c(1, .2), cov.model = "matern", kappa = 2), from = 0, to = 2,
+      xlab = "distance", ylab = expression(gamma(h)),
+      main = "Matern Variogram")
 
-# Plotting 1a) 
-xx <- seq(from = 0, to = 10, by = 0.01) 
-vs <- seq(from = 1, to = 1.9, by = 0.1)
-powered_exponential_functions <- lapply(vs, function(v) get_powered_exponential(v))
-corrs <- lapply(powered_exponential_functions, function(x) x(xx))
-corrs <- lapply(1:length(corrs), function(x) cbind(corrs[[x]], vs[x]))
-corrs <- Reduce(rbind, corrs)
-corrs <- as.data.frame(corrs)
-colnames(corrs) <- c("corr", "v")
-corrs$v <- as.factor(corrs$v)
-p1 <- ggplot(corrs, aes(x = rep(xx, length(vs)), y = corr,col = v)) + geom_line() + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho(\\tau)$"))
+# Problem 1b)
 
