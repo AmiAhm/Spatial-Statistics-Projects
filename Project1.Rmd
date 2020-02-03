@@ -39,7 +39,7 @@ Let $\vect r \sim p(\vect r) = \phi_n(\vect r | \mu_r\vect 1_n, \sigma^2_r \matr
 With $\matr \Sigma_r^p$ covariance matrix defined by the corrolation function given in problem 1a) for a given $\kappa$. To start off we select $\kappa = 0.5$.
 
 This would give use the following pdf:
-$$f_{\vect r}(\vect r | \mu_r, \sigma_r^2\matr \Sigma_r^\rho)= (2\pi)^{-\frac{n}{2}}\det(\matr\Sigma_r^\rho)^{-\frac{1}{2}}\exp\left(-\frac{1}{2}\left(\vect r - \mu_r\vect 1_n\right)^T(\matr\Sigma_r^\rho)^{-1\left(\vect r - \mu_r\vect 1_n\right)\right)$$
+$$f_{\vect r}(\vect r | \mu_r, \sigma_r^2\matr \Sigma_r^\rho)= (2\pi)^{-\frac{n}{2}}det(\matr\Sigma_r^\rho)^{-\frac{1}{2}}\exp\left(-\frac{1}{2}\left(\vect r - \mu_r\vect 1_n\right)^T(\matr\Sigma_r^\rho)^{-1}\left(\vect r - \mu_r\vect 1_n\right)\right)$$
 
 # Problem 1c)
 \begin{equation*}
@@ -68,5 +68,16 @@ $$p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2) = (2\pi)^{k/2}det(\matr \Sigma_\rho
 With the corresponding likelihood function:
 $$L(\sigma_e^2 | \vect d(\vect x), \sigma_r^2)=p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2)$$
 The integral 
-$$\int_{0}^{\inft}p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2) d\sigma^2$$ goes to infinity, thus not a pdf. If we try to draw sigmas beliving L is a pdf, we would expect values to goes to infinity, which would give us more variance than we have. 
+$$\int_{0}^{\infty}p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2) d\sigma^2$$ goes to infinity, thus not a pdf. If we try to draw sigmas beliving L is a pdf, we would expect values to goes to infinity, which would give us more variance than we have. 
 
+# Problem 1d) 
+$\vect d(\vect x)$ and $\vect l(\vect x)$ are both multivariate gaussian so $\vect l | \vect d$ would also be. 
+Have: 
+
+$$
+  \vect\mu_{\vect l | \vect d} = \vect \mu_l + \matr \Sigma_{\vect l, \vect d}^\rho \matr \Sigma_{\vect d, \vect d}^{-1}(\vect d - \vect \mu_{\vect d})
+$$
+
+$$
+  \vect\Sigma_{\vect l | \vect d}^\rho = \matr \Sigma_{\vect l}^\rho - \matr \Sigma_{\vect l, \vect d}^\rho \matr \Sigma_{\vect d, \vect d}^{-1}\Sigma_{\vect d, \vect l}^\rho
+$$

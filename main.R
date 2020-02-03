@@ -61,22 +61,26 @@ p2 <- curve(variogram(x, cov.pars=c(1, .2), cov.model = "matern", kappa = 2), fr
 
 # Calculate covariance matrix. Find all combinations of points
 library(MASS)
-library(cowplot)
 
 # TODO: Craete some for loop and plot around this
+cov.matr <- function(xx, yy, sigma2, phi, cov.model, kappa){
+  cov.fun <- function(x) cov.spatial(x, cov.pars=c(sigma2, phi), cov.model = cov.model, kappa = kappa)
+  cov.matrix <- matrix(NA, length(xx), length(yy))
+  foreach(i=1:length(xx)) %:%
+    foreach(j=1:length(yy)) %do%{
+      a <- cov.fun(abs(xx[i]-yy[j]))
+      cov.matrix[i, j] = a
+    }
+  return(cov.matrix)
+}
+
 sigma2 <- 1
 phi <- 10
 cov.model <- "matern"
 kappa <- 2
+cov.matrix = cov.matr(xx, xx, sigma2, phi, cov.model, kappa)
 
-cov.fun <- function(x) cov.spatial(x, cov.pars=c(sigma2, phi), cov.model = cov.model, kappa = kappa)
-cov.matrix <- matrix(NA, length(xx), length(xx))
-foreach(i=1:length(xx)) %:%
-  foreach(j=i:length(xx)) %do%{
-    a <- cov.fun(abs(xx[i]-xx[j]))
-    cov.matrix[i, j] = a
-    cov.matrix[j, i] = a
-  }
+
 mu = rep(0, length(xx))
 draw <- MASS::mvrnorm(n = 8, mu = mu, Sigma = cov.matrix)
 draw <- t(draw)
@@ -88,3 +92,6 @@ observations$trial <- as.factor(observations$trial)
 
 pl <- ggplot()
 pl + geom_line(data = observations, aes(x = x, y = observed_value, color = trial))
+
+# Problem 1d) 
+dd = c(10, 25, 30)
