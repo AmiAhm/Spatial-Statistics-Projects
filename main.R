@@ -67,7 +67,7 @@ cov.matr <- function(xx, yy, sigma2, phi, cov.model, kappa){
   cov.fun <- function(x) cov.spatial(x, cov.pars=c(sigma2, phi), cov.model = cov.model, kappa = kappa)
   cov.matrix <- matrix(NA, length(xx), length(yy))
   foreach(i=1:length(xx)) %:%
-    foreach(j=1:length(yy)) %do%{
+    foreach(j=1:length(yy)) %do%{ # can switch j=1 with j=1 if quadratic
       a <- cov.fun(abs(xx[i]-yy[j]))
       cov.matrix[i, j] = a
     }
@@ -94,4 +94,28 @@ pl <- ggplot()
 pl + geom_line(data = observations, aes(x = x, y = observed_value, color = trial))
 
 # Problem 1d) 
+sigma2 <- 1
+phi <- 10
+cov.model <- "matern"
+kappa <- 2
 dd = c(10, 25, 30)
+mu.d = rep(0, length(dd))
+mu.l = rep(0, length(xx))
+sigma.ll= cov.matr(xx,xx, sigma2, phi, cov.model, kappa)
+sigma.dd = cov.matr(dd, dd, sigma2, phi, cov.model, kappa)
+sigma.ld = cov.matr(xx, dd, sigma2, phi, cov.model, kappa)
+sigma.dl = t(sigma.ld)
+sigma.l.d = sigma.ll - sigma.ld %*% solve(sigma.dd) %*% sigma.dl
+
+ddx <- observations[observations$col == 2 & observations$xx %in% dd,]$V2
+mu.l.d. = mu.l + sigma.ld %*% solve(sigma.dd) %*% (ddx-mu.d)
+# 90 percent confidence:
+c = qnorm(p = 0.95)
+variances = diag(sigma.l.d) 
+variances[variances < 1e-12] = 0
+min.90 = mu.l.d. - c*sqrt(variances)
+max.90 = mu.l.d. + c*sqrt(variances)
+plot(xx, mu.l.d.)
+points(xx, min.90)
+points(xx, max.90)
+
