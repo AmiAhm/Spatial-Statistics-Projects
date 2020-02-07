@@ -94,7 +94,14 @@ pl <- ggplot()
 pl + geom_line(data = observations, aes(x = x, y = observed_value, color = trial))
 
 # Problem 1d) 
-sigma2 <- 1
+observation_error <- function(dd, sigma_e_2){
+  # dd
+  res <- diag(1, length(dd))*sigma_e_2
+  res
+}
+
+sigma_e_2 <- .25 # Observation error
+sigma2 <- 5
 phi <- 10
 cov.model <- "matern"
 kappa <- 2
@@ -102,20 +109,126 @@ dd = c(10, 25, 30)
 mu.d = rep(0, length(dd))
 mu.l = rep(0, length(xx))
 sigma.ll= cov.matr(xx,xx, sigma2, phi, cov.model, kappa)
-sigma.dd = cov.matr(dd, dd, sigma2, phi, cov.model, kappa)
+sigma.dd = cov.matr(dd, dd, sigma2, phi, cov.model, kappa) + observation_error(dd, sigma_e_2)
 sigma.ld = cov.matr(xx, dd, sigma2, phi, cov.model, kappa)
 sigma.dl = t(sigma.ld)
 sigma.l.d = sigma.ll - sigma.ld %*% solve(sigma.dd) %*% sigma.dl
 
-ddx <- observations[observations$col == 2 & observations$xx %in% dd,]$V2
-mu.l.d. = mu.l + sigma.ld %*% solve(sigma.dd) %*% (ddx-mu.d)
+# Assume these are what is actually observed
+ddy <- observations[observations$trial == 2 & observations$x %in% dd,]$observed_value
+mu.l.d. = mu.l + sigma.ld %*% solve(sigma.dd) %*% (ddy-mu.d)
 # 90 percent confidence:
 c = qnorm(p = 0.95)
 variances = diag(sigma.l.d) 
 variances[variances < 1e-12] = 0
 min.90 = mu.l.d. - c*sqrt(variances)
 max.90 = mu.l.d. + c*sqrt(variances)
-plot(xx, mu.l.d.)
-points(xx, min.90)
-points(xx, max.90)
 
+min.90 <- as.vector(min.90)
+max.90 <- as.vector(max.90)
+
+
+plot(x = xx, y = mu.l.d., ylim = c(-5, 5))
+points(x = xx, y = min.90, col = "red")
+points(xx, max.90, col = "red")
+
+abline(v=dd[1], lty = 2)
+abline(v=dd[2], lty = 2)
+abline(v=dd[3], lty = 2)
+
+# Problem 1e) 
+sigma_e_2 <- 0 # Observation error
+sigma2 <- 5
+phi <- 10
+cov.model <- "matern"
+kappa <- 2
+dd = c(10, 25, 30)
+mu.d = rep(0, length(dd))
+mu.l = rep(0, length(xx))
+sigma.ll= cov.matr(xx,xx, sigma2, phi, cov.model, kappa)
+sigma.dd = cov.matr(dd, dd, sigma2, phi, cov.model, kappa) + observation_error(dd, sigma_e_2)
+sigma.ld = cov.matr(xx, dd, sigma2, phi, cov.model, kappa)
+sigma.dl = t(sigma.ld)
+sigma.l.d = sigma.ll - sigma.ld %*% solve(sigma.dd) %*% sigma.dl
+mu.l.d. = mu.l + sigma.ld %*% solve(sigma.dd) %*% (ddy-mu.d)
+
+c = qnorm(p = 0.95)
+variances = diag(sigma.l.d) 
+variances[variances < 1e-12] = 0
+min.90 = mu.l.d. - c*sqrt(variances)
+max.90 = mu.l.d. + c*sqrt(variances)
+
+min.90 <- as.vector(min.90)
+max.90 <- as.vector(max.90)
+
+draw <- MASS::mvrnorm(n = 100, mu = mu.l.d., Sigma = sigma.l.d)
+draw <- t(draw)
+draw <- cbind(xx, draw)
+observations <- Reduce(rbind, lapply(2:ncol(draw), function(col) cbind(draw[,c(1, col)], col)))
+observations <- as.data.frame(observations)
+colnames(observations) <- c("x", "observed_value", "trial")
+observations$trial <- as.factor(observations$trial)
+
+plot(x = xx, y = mu.l.d., ylim = c(-5, 5))
+points(x = xx, y = min.90, col = "red")
+points(xx, max.90, col = "red")
+points(observations$x, observations$observed_value, col = rgb(0,1,0,0.25))
+abline(v=dd[1], lty = 2)
+abline(v=dd[2], lty = 2)
+abline(v=dd[3], lty = 2)
+
+## Calculating percentage points inside:
+observations$inside_min_max_90 = observations$observed_value > min.90 & observations$observed_value < max.90
+mean(observations$inside_min_max_90)
+
+# Problem 1f)
+
+## Chance posterior over 2
+plot.height <- 10 
+plot.min <- -5
+mu <- mu.l.d.
+variances <- diag(sigma.l.d)
+probs <- pnorm(2, mean = mu, sd = sqrt(variances), lower.tail = F) # TODO: Sqrt here or not?
+probs <- probs * plot.height + plot.min
+
+
+## TODO: Use integrate to find close to theoretical value of A_r 
+# Check if point over 2:
+observations$over_2 <- observations$observed_value > 2
+a_r.est <- mean(observations$over_2)*50 # Points are equally spread out so placement does not matter
+
+
+
+# Look at each x
+library(dplyr)
+grouped_over_2 <- observations %>% group_by(x) %>% summarise(perc_over_2 = mean(over_2))
+
+
+#### Plotting:
+plot(x = xx, y = mu.l.d., ylim = c(-5, 5))
+points(x = xx, y = min.90, col = "red")
+points(xx, max.90, col 
+points(observations[observations$over_2,]$x, observations[observations$over_2,]$observed_value, col = rgb(0,0,1,0.25))
+points(observations[!observations$over_2,]$x, observations[!observations$over_2,]$observed_value, col = rgb(0,1,0,0.25))
+abline(v=dd[1], lty = 2)
+abline(v=dd[2], lty = 2)
+abline(v=dd[3], lty = 2)
+lines(xx, probs)
+abline(h = 2)
+lines(grouped_over_2$x, grouped_over_2$perc_over_2*plot.height + plot.min, col="blue")
+sum(grouped_over_2$perc_over_2)
+####
+
+# Each sample is a bernoulli trial with p given by x (either blue or black line)
+# Each sample thus have variance p(1-p)
+# p_hat_i = (Xi1 + ... + Xi100) / 100  
+# => var p_hat_i = sum(var(X_i1))/100 = p_hat_i*(1-p_hat_i)
+# hat A = sum(p_hat_1, p_hat_2, p_hat_3, ... p_hat_50)
+# => var(hat_A) = sum(p_hat_i*(1-p_hat_i))
+p.hat.i = grouped_over_2$perc_over_2
+var.p.hat.i = p.hat.i * (1-p.hat.i)
+var.A.hat = sum(var.p.hat.i)
+
+
+# Alternative method
+A.hat.V2 <- sum(mu.l.d. > 2)

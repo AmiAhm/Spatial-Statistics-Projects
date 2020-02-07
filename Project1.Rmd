@@ -1,9 +1,10 @@
 ---
 title: "Project1"
-output: html_document
-header-includes:
-   - \usepackage{amsmath}
-editor_options: 
+header-includes: \usepackage{amsmath}
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
   chunk_output_type: console
 ---
 
@@ -61,6 +62,9 @@ $$Cov(d(x), d(x)) = Cov(r(x)+\epsilon(x), r(x) + \epsilon(x)) = Cov(r(x), r(x)) 
 
 So in general we see:
 $$Cov(\vect d(\vect x), \vect d(\vect x')) = \sigma^2_e \matr I_k +\sigma^2_r\matr \Sigma_\rho^d$$
+
+$$Cov(\vect d(\vect x), \vect l(\vect x')) = ...
+
 
 $\vect d$ is multivariate normal and thus have the following pdf:
 $$p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2) = (2\pi)^{k/2}det(\matr \Sigma_\rho^d)^{-1/2}\exp(\frac{1}{2}\vect d^T(\matr\Sigma_\rho^d)^{-1}\vect d)$$
