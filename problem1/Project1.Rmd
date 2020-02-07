@@ -1,0 +1,87 @@
+---
+title: "Project1"
+header-includes: \usepackage{amsmath}
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("main.R")
+```
+\newcommand{\vect}[1]{\boldsymbol{\mathbf{#1}}}
+\newcommand{\matr}[1]{\boldsymbol{\mathbf{#1}}}
+\newcommand{\det}{det}
+\newcommand{\exp}{exp}
+\newcommand{\exp}{iid}
+
+$$E(r(X)) = \mu_r = 0$$
+
+$$Var(r(X)) = \sigma_r^2$$
+ $$ Cor(r(X), r(X')) = \rho_r(\tau) $$
+ 
+ $$\tau = \frac{| X - X'|}{10}$$
+ 
+ $(r(x) | x\in D = [1, 50]\subset \mathbb{R}^1)$
+ 
+ $\vect{X}$
+```{r}
+p1
+p2
+```
+
+ # Problem 1b)
+ Want to specify pdf of a guassian prior rf.
+
+Let $\vect r \sim p(\vect r) = \phi_n(\vect r | \mu_r\vect 1_n, \sigma^2_r \matr \Sigma_r^\rho$
+With $\matr \Sigma_r^p$ covariance matrix defined by the corrolation function given in problem 1a) for a given $\kappa$. To start off we select $\kappa = 0.5$.
+
+This would give use the following pdf:
+$$f_{\vect r}(\vect r | \mu_r, \sigma_r^2\matr \Sigma_r^\rho)= (2\pi)^{-\frac{n}{2}}det(\matr\Sigma_r^\rho)^{-\frac{1}{2}}\exp\left(-\frac{1}{2}\left(\vect r - \mu_r\vect 1_n\right)^T(\matr\Sigma_r^\rho)^{-1}\left(\vect r - \mu_r\vect 1_n\right)\right)$$
+
+# Problem 1c)
+\begin{equation*}
+   d(x) = r(x) + \epsilon(x), \quad x \in \lbrace 10, 25, 30 \rbrace \\
+   \epsilon(\dot) \sim N(0, \sigma_\epsilon^2), \iid \\
+   d(x) \sim aquistion model \\
+   r(x) and \epsilon(x) indep \\
+   \epsilon(x) and \epsilon(x') \iid  \\
+\end{equation*}
+As we both $\epsilon(\dot)$ and $r(\dot)$ ar gaussian, a linear product of the two would also be. 
+
+We further note:
+$$E(d(x)) = E(r(x)) + E((\epsilon(x))) = 0$$
+
+When $x\neq x'$
+$$Cov(d(x), d(x')) = Cov(r(x)+\epsilon(x), r(x') + \epsilon(x')) = Cov(r(x), r(x')) + Cov(\epsilon(x), \epsilon(x')) = \sigma_r^2\rho_r(\tau)$$
+And: 
+$$Cov(d(x), d(x)) = Cov(r(x)+\epsilon(x), r(x) + \epsilon(x)) = Cov(r(x), r(x)) + Cov(\epsilon(x), \epsilon(x)) = \sigma_r^2\rho_r(\tau) + \sigma_e^2$$
+
+So in general we see:
+$$Cov(\vect d(\vect x), \vect d(\vect x')) = \sigma^2_e \matr I_k +\sigma^2_r\matr \Sigma_\rho^d$$
+
+$$Cov(\vect d(\vect x), \vect l(\vect x')) = ...
+
+
+$\vect d$ is multivariate normal and thus have the following pdf:
+$$p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2) = (2\pi)^{k/2}det(\matr \Sigma_\rho^d)^{-1/2}\exp(\frac{1}{2}\vect d^T(\matr\Sigma_\rho^d)^{-1}\vect d)$$
+
+With the corresponding likelihood function:
+$$L(\sigma_e^2 | \vect d(\vect x), \sigma_r^2)=p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2)$$
+The integral 
+$$\int_{0}^{\infty}p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2) d\sigma^2$$ goes to infinity, thus not a pdf. If we try to draw sigmas beliving L is a pdf, we would expect values to goes to infinity, which would give us more variance than we have. 
+
+# Problem 1d) 
+$\vect d(\vect x)$ and $\vect l(\vect x)$ are both multivariate gaussian so $\vect l | \vect d$ would also be. 
+Have: 
+
+$$
+  \vect\mu_{\vect l | \vect d} = \vect \mu_l + \matr \Sigma_{\vect l, \vect d}^\rho \matr \Sigma_{\vect d, \vect d}^{-1}(\vect d - \vect \mu_{\vect d})
+$$
+
+$$
+  \vect\Sigma_{\vect l | \vect d}^\rho = \matr \Sigma_{\vect l}^\rho - \matr \Sigma_{\vect l, \vect d}^\rho \matr \Sigma_{\vect d, \vect d}^{-1}\Sigma_{\vect d, \vect l}^\rho
+$$
