@@ -207,7 +207,8 @@ grouped_over_2 <- observations %>% group_by(x) %>% summarise(perc_over_2 = mean(
 #### Plotting:
 plot(x = xx, y = mu.l.d., ylim = c(-5, 5))
 points(x = xx, y = min.90, col = "red")
-points(xx, max.90, col 
+points(x = xx, y = min.90, col = "red")
+points(xx, max.90, col = "red")
 points(observations[observations$over_2,]$x, observations[observations$over_2,]$observed_value, col = rgb(0,0,1,0.25))
 points(observations[!observations$over_2,]$x, observations[!observations$over_2,]$observed_value, col = rgb(0,1,0,0.25))
 abline(v=dd[1], lty = 2)
@@ -232,3 +233,4 @@ var.A.hat = sum(var.p.hat.i)
 
 # Alternative method
 A.hat.V2 <- sum(mu.l.d. > 2)
+
