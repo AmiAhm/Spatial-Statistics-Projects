@@ -4,8 +4,10 @@ library(latex2exp)
 library(geoR)
 library(foreach)
 library(tidyr)
-
+library("viridis")        
 # Plotting 1a)
+
+# Defining some parameters
 from = 1
 to = 50
 xx <- seq(from = from, to = to, by = 1)
@@ -13,40 +15,93 @@ vs.exponential <- c(1.1,1.9)
 vs.matern <- c(1, 3)
 sigma2s <- c(1, 5)
 
+# Creating empty plot frame
+colors <- c("blue", "blue", "red", "red","blue", "blue", "red", "red")
+x <- seq(from = 0 ,to = 50, by = 0.001)
+p1 <- plot(1, type="n", xlab=TeX("$\\tau$"), ylab=TeX("$\\rho_r(\\tau)$"), xlim=c(0, 50), ylim=c(0, 7),
+     main = TeX("Matern covariance, $\\sigma^2_r\\rho_r(\\tau)$"))
+# Plotting matern stuff
+y <- cov.spatial(x, cov.pars=c(sigma2s[1], vs.matern[1]), cov.model = "matern", kappa = 2)
+lines(x = x,
+      y = y,
+      col = colors[1],
+      xlim = c(0,50),
+      lwd = 2,
+      lty = 1)
+y <- cov.spatial(x, cov.pars=c(sigma2s[1], vs.matern[2]), cov.model = "matern", kappa = 2)
+lines(x = x,
+      y = y,
+      col = colors[2],
+      xlim = c(0,50),
+      lwd = 2, 
+      lty = 2)
+y <- cov.spatial(x, cov.pars=c(sigma2s[2], vs.matern[1]), cov.model = "matern", kappa = 2)
+lines(x = x,
+      y = y,
+      col = colors[3],
+      xlim = c(0,50),
+      lwd = 2,
+      lty = 3)
 
-plot.covariance <- function(cov.model = "matern", kappa = 2, sigma2 = 1, from = 1, to = 50, by = 0.01 , phi = 1, color = NULL){
-  x <- seq(from = from ,to = to, by = by)
-  y <- cov.spatial(x, cov.pars=c(sigma2, phi), cov.model = cov.model, kappa = kappa)
-  p <- geom_line(data = as.data.frame(cbind(x, y)), aes(x = x, y = y, color = color))
-  return(p)
-}
+y <- cov.spatial(x, cov.pars=c(sigma2s[2], vs.matern[2]), cov.model = "matern", kappa = 2)
+lines(x = x,
+      y = y,
+      col = colors[4],
+      xlim = c(0,50),
+      lwd = 2,
+      lty = 4)
+legend('topright', legend=TeX(c(paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1]),
+                                paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1]),
+                                paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[2]),
+                                paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2]))),
+                                col = colors[1:4],
+       lty = c(1,2,3,4),
+       lwd = 2, 
+       bty="n",
+       inset = 0.08)
+# Plotting powered exponential
+p2 <- plot(1, type="n", xlab=TeX("$\\tau$"), ylab=TeX("$\\sigma^2_r\\rho_r(\\tau)$"), xlim=c(0, 50), ylim=c(0, 7),
+     main = TeX("Powered exponential covariance, $\\sigma^2_r\\rho_r(\\tau)$"))
+y <- cov.spatial(x, cov.pars=c(sigma2s[1], vs.exponential[1]), cov.model = "exponential", kappa = 2)
+lines(x = x,
+      y = y,
+      col = colors[5],
+      xlim = c(0,50),
+      lwd = 2,
+      lty = 1)
+y <- cov.spatial(x, cov.pars=c(sigma2s[1], vs.exponential[2]), cov.model = "exponential", kappa = 2)
+lines(x = x,
+      y = y,
+      col = colors[6],
+      xlim = c(0,50),
+      lwd = 2, 
+      lty = 2)
+y <- cov.spatial(x, cov.pars=c(sigma2s[2], vs.exponential[1]), cov.model = "exponential", kappa = 2)
+lines(x = x,
+      y = y,
+      col = colors[7],
+      xlim = c(0,50),
+      lwd = 2,
+      lty =3)
+
+y <- cov.spatial(x, cov.pars=c(sigma2s[2], vs.exponential[2]), cov.model = "exponential", kappa = 2)
+lines(x = x,
+      y = y,
+      col = colors[8],
+      xlim = c(0,50),
+      lwd = 2,
+      lty = 4)
+legend('topright', legend=TeX(c(paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1]),
+                                paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1]),
+                                paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[2]),
+                                paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2]))),
+       col = colors[5:8],
+       lty = c(1,2,3,4),
+       lwd = 2,
+       inset = 0.08, 
+       bty ="n")
 
 
-
-for_each_paramater_do <- function(fun, ...){
-  result = list()
-  foreach(sigma2=sigma2s) %:%
-    foreach(cov.model = c("matern", "exp")) %do%{
-      for(i in 1:2){
-        if(cov.model == "matern"){
-          vs <- vs.matern[i]
-        }else{
-          vs <- vs.exponential[i]
-        }
-        p <- fun(sigma2 = sigma2, cov.model = cov.model, kappa = vs, ...)
-        result = c(result, list(p))
-      }
-    }
-    return(result)
-}
-
-for_each_parameter_plot <- function(fun, ...){
-  plots <- for_each_paramater_do(fun, ...)
-  plot.object <- ggplot()
-  foreach(p=plots) %do% {plot.object <- plot.object + p}
-  return(plot.object)
-}
-p1 <- for_each_parameter_plot(plot.covariance, from = 1, to = 50, by = 0.01, phi = 10, color = "black")
 
 variogram <- function(x, ...){
   return(1-cov.spatial(x, ...))
