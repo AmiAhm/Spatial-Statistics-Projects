@@ -4,6 +4,7 @@ library(latex2exp)
 library(geoR)
 library(foreach)
 library(tidyr)
+library(ggpubr)
 library("viridis")        
 # Plotting 1a)
 
@@ -16,100 +17,96 @@ vs.matern <- c(1, 3)
 sigma2s <- c(1, 5)
 
 # Creating empty plot frame
-colors <- c("blue", "blue", "red", "red","blue", "blue", "red", "red")
+#colors <- c("blue", "blue", "red", "red","blue", "blue", "red", "red")
 x <- seq(from = 0 ,to = 50, by = 0.001)
-p1 <- plot(1, type="n", xlab=TeX("$\\tau$"), ylab=TeX("$\\rho_r(\\tau)$"), xlim=c(0, 50), ylim=c(0, 7),
-     main = TeX("Matern covariance, $\\sigma^2_r\\rho_r(\\tau)$"))
 # Plotting matern stuff
 y <- cov.spatial(x, cov.pars=c(sigma2s[1], vs.matern[1]), cov.model = "matern", kappa = 2)
-lines(x = x,
-      y = y,
-      col = colors[1],
-      xlim = c(0,50),
-      lwd = 2,
-      lty = 1)
+p1 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
 y <- cov.spatial(x, cov.pars=c(sigma2s[1], vs.matern[2]), cov.model = "matern", kappa = 2)
-lines(x = x,
-      y = y,
-      col = colors[2],
-      xlim = c(0,50),
-      lwd = 2, 
-      lty = 2)
-y <- cov.spatial(x, cov.pars=c(sigma2s[2], vs.matern[1]), cov.model = "matern", kappa = 2)
-lines(x = x,
-      y = y,
-      col = colors[3],
-      xlim = c(0,50),
-      lwd = 2,
-      lty = 3)
+p1 <- p1 + geom_line(aes(x = x, y= y, col = "blue"), data = as.data.frame(cbind(x,y)))
+p1 <- p1 + ggtitle(TeX("Matern correlation, $\\rho_r(\\tau)$")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
+p1 <- p1 +
+  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.matern[1])
+                                             ,paste("$\\nu =$", vs.matern[2]))))) +
+  theme_classic() +
+  theme(legend.key.size = unit(1.5, 'lines'),
+        legend.position = 'right',
+        text = element_text(size=20),
+        legend.title = element_blank(),
+        legend.spacing.y = unit(0, "mm"))
+  
+p1
 
-y <- cov.spatial(x, cov.pars=c(sigma2s[2], vs.matern[2]), cov.model = "matern", kappa = 2)
-lines(x = x,
-      y = y,
-      col = colors[4],
-      xlim = c(0,50),
-      lwd = 2,
-      lty = 4)
-legend('topright', legend=TeX(c(paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1]),
-                                paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1]),
-                                paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[2]),
-                                paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2]))),
-                                col = colors[1:4],
-       lty = c(1,2,3,4),
-       lwd = 2, 
-       bty="n",
-       inset = 0.08)
 # Plotting powered exponential
-p2 <- plot(1, type="n", xlab=TeX("$\\tau$"), ylab=TeX("$\\sigma^2_r\\rho_r(\\tau)$"), xlim=c(0, 50), ylim=c(0, 7),
-     main = TeX("Powered exponential covariance, $\\sigma^2_r\\rho_r(\\tau)$"))
 y <- cov.spatial(x, cov.pars=c(sigma2s[1], vs.exponential[1]), cov.model = "exponential", kappa = 2)
-lines(x = x,
-      y = y,
-      col = colors[5],
-      xlim = c(0,50),
-      lwd = 2,
-      lty = 1)
-y <- cov.spatial(x, cov.pars=c(sigma2s[1], vs.exponential[2]), cov.model = "exponential", kappa = 2)
-lines(x = x,
-      y = y,
-      col = colors[6],
-      xlim = c(0,50),
-      lwd = 2, 
-      lty = 2)
-y <- cov.spatial(x, cov.pars=c(sigma2s[2], vs.exponential[1]), cov.model = "exponential", kappa = 2)
-lines(x = x,
-      y = y,
-      col = colors[7],
-      xlim = c(0,50),
-      lwd = 2,
-      lty =3)
+p2 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+y <- cov.spatial(x, cov.pars=c(sigma2s[1], vs.exponential[2]), cov.model = "matern", kappa = 2)
+p2 <- p2 + geom_line(aes(x = x, y= y, col = "blue"), data = as.data.frame(cbind(x,y)))
+p2 <- p2 + ggtitle(TeX("Powered exponential correlation, $\\rho_r(\\tau)$")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
+p2 <- p2 +
+  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.exponential[1])
+                                                ,paste("$\\nu =$", vs.exponential[2])))),
+                       guide = guide_legend(label.hjust = 0.1)) +
+  theme_classic() +
+  theme(legend.key.size = unit(1.5, 'lines'),
+        legend.position = 'right',
+        text = element_text(size=20),
+        legend.title = element_blank(),
+        legend.spacing.y = unit(0, "mm"))
+p2
 
-y <- cov.spatial(x, cov.pars=c(sigma2s[2], vs.exponential[2]), cov.model = "exponential", kappa = 2)
-lines(x = x,
-      y = y,
-      col = colors[8],
-      xlim = c(0,50),
-      lwd = 2,
-      lty = 4)
-legend('topright', legend=TeX(c(paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1]),
-                                paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1]),
-                                paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[2]),
-                                paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2]))),
-       col = colors[5:8],
-       lty = c(1,2,3,4),
-       lwd = 2,
-       inset = 0.08, 
-       bty ="n")
+# variogram <- function(x, ...){
+#   return(1-cov.spatial(x, ...))
+# }
+
+### Variograms
+y <- sigma2s[1]*(1- cov.spatial(x, cov.pars=c(1, vs.matern[1]), cov.model = "matern", kappa = 2))
+p3 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+y <- sigma2s[1]*(1- cov.spatial(x, cov.pars=c(1, vs.matern[2]), cov.model = "matern", kappa = 2))
+p3 <- p3 + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+y <- sigma2s[2]*(1- cov.spatial(x, cov.pars=c(1, vs.matern[1]), cov.model = "matern", kappa = 2))
+p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)))
+y <- sigma2s[2]*(1- cov.spatial(x, cov.pars=c(1, vs.matern[2]), cov.model = "matern", kappa = 2))
+p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+p3 <- p3 + ggtitle(TeX("Matern variogram, $\\gamma_r(\\tau)$")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma_r(\\tau)$")) +
+  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[2])
+                                                ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2])))),
+                       guide = guide_legend(label.hjust = 0.1)) +
+  theme_classic() +
+  theme(legend.key.size = unit(1.5, 'lines'),
+        legend.position = 'right',
+        text = element_text(size=20),
+        legend.title = element_blank(),
+        legend.spacing.y = unit(0, "mm"))
+p3
 
 
+# Powered exponential
+y <- sigma2s[1]*(1- cov.spatial(x, cov.pars=c(1, vs.exponential[1]), cov.model = "exponential", kappa = 2))
+p4 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+y <- sigma2s[1]*(1- cov.spatial(x, cov.pars=c(1, vs.exponential[2]), cov.model = "exponential", kappa = 2))
+p4 <- p4 + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+y <- sigma2s[2]*(1- cov.spatial(x, cov.pars=c(1, vs.exponential[1]), cov.model = "exponential", kappa = 2))
+p4 <- p4 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)))
+y <- sigma2s[2]*(1- cov.spatial(x, cov.pars=c(1, vs.exponential[2]), cov.model = "exponential", kappa = 2))
+p4 <- p4 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+p4 <- p4 + ggtitle(TeX("Powered exponential variogram, $\\gamma_r(\\tau)$")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma_r(\\tau)$")) +
+  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.exponential[1], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.exponential[2], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.exponential[1], ", $\\sigma^2 =$",sigma2s[2])
+                                                ,paste("$\\nu =$", vs.exponential[2], ", $\\sigma^2 =$",sigma2s[2])))),
+                       guide = guide_legend(label.hjust = 0.1)) +
+  theme_classic() +
+  theme(legend.key.size = unit(1.5, 'lines'),
+        legend.position = 'right',
+        text = element_text(size=20),
+        legend.title = element_blank(),
+        legend.spacing.y = unit(0, "mm"))
+p4
 
-variogram <- function(x, ...){
-  return(1-cov.spatial(x, ...))
-}
 
-p2 <- curve(variogram(x, cov.pars=c(1, .2), cov.model = "matern", kappa = 2), from = 0, to = 2,
-      xlab = "distance", ylab = expression(gamma(h)),
-      main = "Matern Variogram")
 
 
 # Problem 1b)
@@ -117,7 +114,7 @@ p2 <- curve(variogram(x, cov.pars=c(1, .2), cov.model = "matern", kappa = 2), fr
 # Calculate covariance matrix. Find all combinations of points
 library(MASS)
 
-# TODO: Craete some for loop and plot around this
+# Function that returns covariance matrix using cov.spatial
 cov.matr <- function(xx, yy, sigma2, phi, cov.model, kappa){
   cov.fun <- function(x) cov.spatial(x, cov.pars=c(sigma2, phi), cov.model = cov.model, kappa = kappa)
   cov.matrix <- matrix(NA, length(xx), length(yy))
@@ -133,20 +130,43 @@ sigma2 <- 1
 phi <- 10
 cov.model <- "matern"
 kappa <- 2
-cov.matrix = cov.matr(xx, xx, sigma2, phi, cov.model, kappa)
+
+n.realizations <- function(n, xx, sigma2, phi, cov.model, kappa = 2, title = "title"){
+  # Create covariance matrix
+  cov.matrix = cov.matr(xx, xx, sigma2, phi, cov.model, kappa)
+  
+  # Expected value
+  mu = rep(0, length(xx))
+  
+  # Draw from multivariate normal
+  draw <- MASS::mvrnorm(n = n, mu = mu, Sigma = cov.matrix)
+  
+  # Transform the data
+  draw <- t(draw)
+  draw <- cbind(xx, draw)
+  observations <- Reduce(rbind, lapply(2:ncol(draw), function(col) cbind(draw[,c(1, col)], col)))
+  observations <- as.data.frame(observations)
+  colnames(observations) <- c("x", "observed_value", "trial")
+  observations$trial <- as.factor(observations$trial)
+  
+  # Plot the data
+  pl <- ggplot()
+  pl <- pl + geom_line(data = observations, aes(x = x, y = observed_value, color = trial)) + ggtitle(TeX(paste(title, "$\\nu =$", phi, ", $\\sigma^2 =$",sigma2)))
+  pl
+}
+
+n <- 4
+p1 <- n.realizations(n, xx, sigma2s[1], vs.matern[1], cov.model = "matern", kappa = 2, title = "a) Matern realizations, with:")
+p2 <- n.realizations(n, xx, sigma2s[1], vs.matern[2], cov.model = "matern", kappa = 2, title = "b) Matern realizations, with:")
+p3 <- n.realizations(n, xx, sigma2s[2], vs.matern[1], cov.model = "matern", kappa = 2, title = "c) Matern realizations, with:")
+p4 <- n.realizations(n, xx, sigma2s[2], vs.matern[2], cov.model = "matern", kappa = 2, title = "d) Matern realizations, with:")
+p5 <- n.realizations(n, xx, sigma2s[1], vs.exponential[1], cov.model = "exponential", kappa = 2, title = "e) Powered exponential realizations, with:")
+p6 <- n.realizations(n, xx, sigma2s[1], vs.exponential[2], cov.model = "exponential", kappa = 2, title = "f) Powered exponential, with:")
+p7 <- n.realizations(n, xx, sigma2s[2], vs.exponential[1], cov.model = "exponential", kappa = 2, title = "g) Powered exponential, with:")
+p8 <- n.realizations(n, xx, sigma2s[2], vs.exponential[2], cov.model = "exponential", kappa = 2, title = "h) Powered exponential, with:")
+ggarrange(p1,p2, p3, p4, p5, p6, p7, p8, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 4)
 
 
-mu = rep(0, length(xx))
-draw <- MASS::mvrnorm(n = 8, mu = mu, Sigma = cov.matrix)
-draw <- t(draw)
-draw <- cbind(xx, draw)
-observations <- Reduce(rbind, lapply(2:ncol(draw), function(col) cbind(draw[,c(1, col)], col)))
-observations <- as.data.frame(observations)
-colnames(observations) <- c("x", "observed_value", "trial")
-observations$trial <- as.factor(observations$trial)
-
-pl <- ggplot()
-pl + geom_line(data = observations, aes(x = x, y = observed_value, color = trial))
 
 # Problem 1d) 
 observation_error <- function(dd, sigma_e_2){
