@@ -5,6 +5,7 @@ library(geoR)
 library(foreach)
 library(tidyr)
 library(ggpubr)
+library(dplyr)
 library("viridis")        
 # Plotting 1a)
 
@@ -59,28 +60,6 @@ p2
 #   return(1-cov.spatial(x, ...))
 # }
 
-### Variograms
-y <- sigma2s[1]*(1- cov.spatial(x, cov.pars=c(1, vs.matern[1]), cov.model = "matern", kappa = 2))
-p3 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
-y <- sigma2s[1]*(1- cov.spatial(x, cov.pars=c(1, vs.matern[2]), cov.model = "matern", kappa = 2))
-p3 <- p3 + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
-y <- sigma2s[2]*(1- cov.spatial(x, cov.pars=c(1, vs.matern[1]), cov.model = "matern", kappa = 2))
-p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)))
-y <- sigma2s[2]*(1- cov.spatial(x, cov.pars=c(1, vs.matern[2]), cov.model = "matern", kappa = 2))
-p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
-p3 <- p3 + ggtitle(TeX("Matern variogram, $\\gamma_r(\\tau)$")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma_r(\\tau)$")) +
-  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1])
-                                                ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1])
-                                                ,paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[2])
-                                                ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2])))),
-                       guide = guide_legend(label.hjust = 0.1)) +
-  theme_classic() +
-  theme(legend.key.size = unit(1.5, 'lines'),
-        legend.position = 'right',
-        text = element_text(size=20),
-        legend.title = element_blank(),
-        legend.spacing.y = unit(0, "mm"))
-p3
 
 
 # Powered exponential
@@ -126,12 +105,9 @@ cov.matr <- function(xx, yy, sigma2, phi, cov.model, kappa){
   return(cov.matrix)
 }
 
-sigma2 <- 1
-phi <- 10
-cov.model <- "matern"
-kappa <- 2
 
 n.realizations <- function(n, xx, sigma2, phi, cov.model, kappa = 2, title = "title"){
+  set.seed(1)
   # Create covariance matrix
   cov.matrix = cov.matr(xx, xx, sigma2, phi, cov.model, kappa)
   
@@ -168,93 +144,155 @@ ggarrange(p1,p2, p3, p4, p5, p6, p7, p8, ncol=2, widths = c(1,1), heights = c(1,
 
 
 
-# Problem 1d) 
+# Problem 1d)
+sigma2 <- 5
+phi <- vs.matern[2]
+cov.model <- "matern"
+kappa <- 2
+
+# Structure observations from 
+set.seed(1234)
+cov.matrix = cov.matr(xx, xx,sigma2, phi, cov.model = cov.model, kappa)
+mu = rep(0, length(xx))
+# Draw from multivariate normal
+draw <- MASS::mvrnorm(n = n, mu = mu, Sigma = cov.matrix)
+observations <-draw[1,]
+
+# Function that retruns ovservations error id matrix
 observation_error <- function(dd, sigma_e_2){
   # dd
   res <- diag(1, length(dd))*sigma_e_2
   res
 }
-
-sigma_e_2 <- .25 # Observation error
-sigma2 <- 5
-phi <- 10
-cov.model <- "matern"
-kappa <- 2
+# Observations points
 dd = c(10, 25, 30)
-mu.d = rep(0, length(dd))
-mu.l = rep(0, length(xx))
-sigma.ll= cov.matr(xx,xx, sigma2, phi, cov.model, kappa)
-sigma.dd = cov.matr(dd, dd, sigma2, phi, cov.model, kappa) + observation_error(dd, sigma_e_2)
-sigma.ld = cov.matr(xx, dd, sigma2, phi, cov.model, kappa)
-sigma.dl = t(sigma.ld)
-sigma.l.d = sigma.ll - sigma.ld %*% solve(sigma.dd) %*% sigma.dl
 
 # Assume these are what is actually observed
-ddy <- observations[observations$trial == 2 & observations$x %in% dd,]$observed_value
-mu.l.d. = mu.l + sigma.ld %*% solve(sigma.dd) %*% (ddy-mu.d)
-# 90 percent confidence:
-c = qnorm(p = 0.95)
-variances = diag(sigma.l.d) 
-variances[variances < 1e-12] = 0
-min.90 = mu.l.d. - c*sqrt(variances)
-max.90 = mu.l.d. + c*sqrt(variances)
-
-min.90 <- as.vector(min.90)
-max.90 <- as.vector(max.90)
+ddy <-observations[dd]
 
 
-plot(x = xx, y = mu.l.d., ylim = c(-5, 5))
-points(x = xx, y = min.90, col = "red")
-points(xx, max.90, col = "red")
+generate_plot <- function(title, sigma_e_2){
+  # Generate conditional paramteres
+  mu.d = rep(0, length(dd))
+  mu.r = rep(0, length(xx))
+  sigma.rr= cov.matr(xx,xx, sigma2, phi, cov.model, kappa)
+  
+  sigma.dd = cov.matr(dd, dd, sigma2, phi, cov.model, kappa) + observation_error(dd, sigma_e_2)
+  sigma.rd = cov.matr(xx, dd, sigma2, phi, cov.model, kappa)
+  sigma.dr = t(sigma.rd)
+  sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
+  mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
+  # 90 percent confidence:
+  c = qnorm(p = 0.95)
+  variances = diag(sigma.r.d) 
+  variances[variances < 1e-12] = 0
+  min.90 = mu.r.d. - c*sqrt(variances)
+  max.90 = mu.r.d. + c*sqrt(variances)
+  
+  min.90 <- as.vector(min.90)
+  max.90 <- as.vector(max.90)
+  
+  p <- ggplot(data = as.data.frame(cbind(xx, mu.r.d., min.90, max.90, observations))) +
+    geom_line(aes(x = xx, y = mu.r.d.)) +
+    geom_line(aes(x = xx, y = min.90), linetype = "dashed") + 
+    geom_line(aes(x = xx, y =max.90), linetype = "dashed") +
+    geom_ribbon(aes(x = xx, ymin = min.90, ymax = max.90), alpha = 0.5, fill = "skyblue") + 
+    geom_point(aes(x = xx, y = mu.r.d.)) +
+    geom_point(aes(x = xx, y = min.90), alpha = 0.5) +
+    geom_point(aes(x = xx, y = max.90), alpha = 0.5) +
+    geom_point(aes(x = xx, y = observations), alpha = 0.5, color = "red") +
+    geom_line(aes(x = xx, y =observations), linetype = "dashed", color = "red") +
+    geom_vline(xintercept = dd) + 
+    ggtitle(title) +
+    xlab("x") +
+    ylab("r|d") 
+    
+  p
+}
+p1 <- generate_plot("a) 0.9 confidence without observation error", 0)
+p2 <- generate_plot("b) 0.9 confidence with observation error", .25)
+  
+ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1)
 
-abline(v=dd[1], lty = 2)
-abline(v=dd[2], lty = 2)
-abline(v=dd[3], lty = 2)
+  
+
 
 # Problem 1e) 
-sigma_e_2 <- 0 # Observation error
 sigma2 <- 5
-phi <- 10
+phi <- vs.matern[2]
 cov.model <- "matern"
 kappa <- 2
+
 dd = c(10, 25, 30)
-mu.d = rep(0, length(dd))
-mu.l = rep(0, length(xx))
-sigma.ll= cov.matr(xx,xx, sigma2, phi, cov.model, kappa)
-sigma.dd = cov.matr(dd, dd, sigma2, phi, cov.model, kappa) + observation_error(dd, sigma_e_2)
-sigma.ld = cov.matr(xx, dd, sigma2, phi, cov.model, kappa)
-sigma.dl = t(sigma.ld)
-sigma.l.d = sigma.ll - sigma.ld %*% solve(sigma.dd) %*% sigma.dl
-mu.l.d. = mu.l + sigma.ld %*% solve(sigma.dd) %*% (ddy-mu.d)
 
-c = qnorm(p = 0.95)
-variances = diag(sigma.l.d) 
-variances[variances < 1e-12] = 0
-min.90 = mu.l.d. - c*sqrt(variances)
-max.90 = mu.l.d. + c*sqrt(variances)
-
-min.90 <- as.vector(min.90)
-max.90 <- as.vector(max.90)
-
-draw <- MASS::mvrnorm(n = 100, mu = mu.l.d., Sigma = sigma.l.d)
-draw <- t(draw)
-draw <- cbind(xx, draw)
-observations <- Reduce(rbind, lapply(2:ncol(draw), function(col) cbind(draw[,c(1, col)], col)))
-observations <- as.data.frame(observations)
-colnames(observations) <- c("x", "observed_value", "trial")
-observations$trial <- as.factor(observations$trial)
-
-plot(x = xx, y = mu.l.d., ylim = c(-5, 5))
-points(x = xx, y = min.90, col = "red")
-points(xx, max.90, col = "red")
-points(observations$x, observations$observed_value, col = rgb(0,1,0,0.25))
-abline(v=dd[1], lty = 2)
-abline(v=dd[2], lty = 2)
-abline(v=dd[3], lty = 2)
-
-## Calculating percentage points inside:
-observations$inside_min_max_90 = observations$observed_value > min.90 & observations$observed_value < max.90
-mean(observations$inside_min_max_90)
+generate_plot2 <- function(title, sigma_e_2){
+  mu.d = rep(0, length(dd))
+  mu.r = rep(0, length(xx))
+  sigma.rr= cov.matr(xx,xx, sigma2, phi, cov.model, kappa)
+  
+  sigma.dd = cov.matr(dd, dd, sigma2, phi, cov.model, kappa) + observation_error(dd, sigma_e_2)
+  sigma.rd = cov.matr(xx, dd, sigma2, phi, cov.model, kappa)
+  sigma.dr = t(sigma.rd)
+  sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
+  mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
+  
+  # 90 percent confidence:
+  c = qnorm(p = 0.95)
+  variances = diag(sigma.r.d) 
+  variances[variances < 1e-12] = 0
+  min.90 = mu.r.d. - c*sqrt(variances)
+  max.90 = mu.r.d. + c*sqrt(variances)
+  
+  min.90 <- as.vector(min.90)
+  max.90 <- as.vector(max.90)
+  set.seed(1234)
+  draw <- MASS::mvrnorm(n = 100, mu = mu.r.d., Sigma = sigma.r.d)
+  draw <- t(draw)
+  draw <- cbind(xx, draw)
+  observations <- Reduce(rbind, lapply(2:ncol(draw), function(col) cbind(draw[,c(1, col)], col)))
+  observations <- as.data.frame(observations)
+  colnames(observations) <- c("x", "observed_value", "trial")
+  observations$trial <- as.factor(observations$trial)
+  
+  # Calculate empirical bands
+  observations <- observations %>% group_by(x) %>% summarize(emp_mu = mean(observed_value), emp.min_90 = quantile(observed_value, probs = c(0.05)), emp.max_90 = quantile(observed_value, probs = c(0.95)))
+  
+  # Add theoretical 090% bands. 
+  observations$min.90 <- min.90
+  observations$max.90 <- max.90 
+  observations$mu.r.d. <- mu.r.d. 
+  
+  # Create plot
+  p <- ggplot(data = observations) +
+    
+    # Empiricla values
+    geom_line(aes(x = x, y = emp_mu)) +
+    geom_line(aes(x = x, y = emp.min_90), linetype = "dashed") + 
+    geom_line(aes(x = x, y =emp.max_90), linetype = "dashed") +
+    geom_ribbon(aes(x = x, ymin = emp.min_90, ymax = emp.max_90), alpha = 0.5, fill = "skyblue") + 
+    geom_point(aes(x = x, y = emp_mu)) +
+    geom_point(aes(x = x, y = emp.min_90), alpha = 0.5) +
+    geom_point(aes(x = x, y = emp.max_90), alpha = 0.5) +
+    
+    # Theoretical values
+    geom_line(aes(x = xx, y = mu.r.d.)) +
+    geom_line(aes(x = xx, y = min.90), linetype = "dashed") + 
+    geom_line(aes(x = xx, y =max.90), linetype = "dashed") +
+    geom_ribbon(aes(x = xx, ymin = min.90, ymax = max.90), alpha = 0.5, fill = "red") + 
+    geom_point(aes(x = xx, y = mu.r.d.)) +
+    geom_point(aes(x = xx, y = min.90), alpha = 0.5) +
+    geom_point(aes(x = xx, y = max.90), alpha = 0.5) +
+    
+    geom_vline(xintercept = dd) + 
+    xlab("x") +
+    ylab("r|d") +
+    ggtitle(title)
+  
+  p
+}
+p1 <- generate_plot2("a) 100 realizations, emprical estimation. No observation error", 0)
+p2 <- generate_plot2("b) 100 realizations, emprical estimation. With observation error", 0.25)
+ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1)
 
 # Problem 1f)
 
@@ -266,7 +304,7 @@ variances <- diag(sigma.l.d)
 probs <- pnorm(2, mean = mu, sd = sqrt(variances), lower.tail = F) # TODO: Sqrt here or not?
 probs <- probs * plot.height + plot.min
 
-
+  
 ## TODO: Use integrate to find close to theoretical value of A_r 
 # Check if point over 2:
 observations$over_2 <- observations$observed_value > 2
