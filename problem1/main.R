@@ -6,6 +6,8 @@ library(foreach)
 library(tidyr)
 library(ggpubr)
 library(dplyr)
+library(RandomFields)
+library(MASS)
 library("viridis")        
 # Plotting 1a)
 
