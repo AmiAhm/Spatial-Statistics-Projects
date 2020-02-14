@@ -220,13 +220,6 @@ ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1)
 
 
 # Problem 1e) 
-sigma2 <- 5
-phi <- vs.matern[2]
-cov.model <- "matern"
-kappa <- 2
-
-dd = c(10, 25, 30)
-
 generate_plot2 <- function(title, sigma_e_2){
   mu.d = rep(0, length(dd))
   mu.r = rep(0, length(xx))
@@ -250,8 +243,8 @@ generate_plot2 <- function(title, sigma_e_2){
   set.seed(1234)
   draw <- MASS::mvrnorm(n = 100, mu = mu.r.d., Sigma = sigma.r.d)
   draw <- t(draw)
-  draw <- cbind(xx, draw)
-  observations <- Reduce(rbind, lapply(2:ncol(draw), function(col) cbind(draw[,c(1, col)], col)))
+  observations <- cbind(xx, observations)
+  observations <- Reduce(rbind, lapply(2:ncol(observations), function(col) cbind(draw[,c(1, col)], col)))
   observations <- as.data.frame(observations)
   colnames(observations) <- c("x", "observed_value", "trial")
   observations$trial <- as.factor(observations$trial)
@@ -290,37 +283,61 @@ generate_plot2 <- function(title, sigma_e_2){
     ylab("r|d") +
     ggtitle(title)
   
-  p
+  list(p=p, draw = draw, mu.r.d.= mu.r.d.)
 }
-p1 <- generate_plot2("a) 100 realizations, emprical estimation. No observation error", 0)
-p2 <- generate_plot2("b) 100 realizations, emprical estimation. With observation error", 0.25)
+p1 <- generate_plot2("a) 100 realizations, emprical estimation. No observation error", 0)$p
+p2 <- generate_plot2("b) 100 realizations, emprical estimation. With observation error", 0.25)$p
 ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1)
 
 # Problem 1f)
-
+# Estiamte that each realisation line follow straight line of observed
 ## Chance posterior over 2
+draw <- generate_plot2("", 0)$draw
+est_int <- apply(draw, 2, function(x) length(x[x>2]))
+est_int
+mean(est_int)
+var(est_int)
+
+mu.d = rep(0, length(dd))
+mu.r = rep(0, length(xx))
+sigma.rr= cov.matr(xx,xx, sigma2, phi, cov.model, kappa)
+
+sigma.dd = cov.matr(dd, dd, sigma2, phi, cov.model, kappa)
+sigma.rd = cov.matr(xx, dd, sigma2, phi, cov.model, kappa)
+sigma.dr = t(sigma.rd)
+sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
+mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
+
+# 90 percent confidence:
+c = qnorm(p = 0.95)
+variances = diag(sigma.r.d) 
+variances[variances < 1e-12] = 0
+min.90 = mu.r.d. - c*sqrt(variances)
+max.90 = mu.r.d. + c*sqrt(variances)
+
+min.90 <- as.vector(min.90)
+max.90 <- as.vector(max.90)
+
 plot.height <- 10 
 plot.min <- -5
-mu <- mu.l.d.
-variances <- diag(sigma.l.d)
+mu <- mu.r.d.
+variances <- diag(sigma.r.d)
 probs <- pnorm(2, mean = mu, sd = sqrt(variances), lower.tail = F) # TODO: Sqrt here or not?
 probs <- probs * plot.height + plot.min
 
-  
-## TODO: Use integrate to find close to theoretical value of A_r 
-# Check if point over 2:
-observations$over_2 <- observations$observed_value > 2
-a_r.est <- mean(observations$over_2)*50 # Points are equally spread out so placement does not matter
-
-
-
 # Look at each x
 library(dplyr)
-grouped_over_2 <- observations %>% group_by(x) %>% summarise(perc_over_2 = mean(over_2))
+
+observations <- cbind(1:50, draw)
+observations <- lapply(1:100, function(i) cbind(observations[,1], observations[,i+1], i))
+observations <- Reduce(rbind, observations)
+observations <- as.data.frame(observations)
+observations$over_2 <- observations$V2>2
+grouped_over_2 <- observations %>% group_by(V1) %>% summarise(perc_over_2 = mean(over_2))
 
 
 #### Plotting:
-plot(x = xx, y = mu.l.d., ylim = c(-5, 5))
+plot(x = xx, y = mu.r.d., ylim = c(-5, 5))
 points(x = xx, y = min.90, col = "red")
 points(x = xx, y = min.90, col = "red")
 points(xx, max.90, col = "red")
@@ -331,7 +348,7 @@ abline(v=dd[2], lty = 2)
 abline(v=dd[3], lty = 2)
 lines(xx, probs)
 abline(h = 2)
-lines(grouped_over_2$x, grouped_over_2$perc_over_2*plot.height + plot.min, col="blue")
+lines(grouped_over_2$V1, grouped_over_2$perc_over_2*plot.height + plot.min, col="blue")
 sum(grouped_over_2$perc_over_2)
 ####
 
@@ -344,6 +361,11 @@ sum(grouped_over_2$perc_over_2)
 p.hat.i = grouped_over_2$perc_over_2
 var.p.hat.i = p.hat.i * (1-p.hat.i)
 var.A.hat = sum(var.p.hat.i)
+
+require(pracma)
+probs <- pnorm(2, mean = mu, sd = sqrt(variances), lower.tail = F) # TODO: Sqrt here or not?
+trapz(xx, probs)
+trapz(xx, grouped_over_2$perc_over_2)
 
 
 # Alternative method
