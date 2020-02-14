@@ -1,0 +1,306 @@
+---
+title: "Project 1 - SPATIAL STATISTICS"
+author: "Kwaku Peprah Adjei, Amir Ahmed"
+#date: "1/23/2020"
+output:
+  pdf_document:
+    fig_caption: yes
+    includes:
+      in_header: preamble.tex
+  html_document:
+    df_print: paged
+    includes:
+      in_header: preamble.tex
+editor_options:
+  chunk_output_type: console
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  cache = TRUE,
+  message=FALSE,
+  warning=FALSE,
+  include=TRUE)
+set.seed(1234)
+library(geoR)
+library(akima)
+library(fields)
+library(data.table)
+library(ggplot2)
+library(ggpubr)
+library(MASS)
+library(RandomFields)
+library(reshape2)
+library(latex2exp)
+library(geoR)
+library(tidyr)
+library(dplyr)
+```
+
+
+# Problem 1
+Let $\lbrace r(x) : x \in \text{D} : \left[1, 50\right]\subset\mathbb{R}^1\rbrace$. Assume it is modelled as a stationary one dimensional Gaussian random field with the following parameters:
+\begin{equation}\label{prob1eq}
+    \begin{split}
+    E\lbrace r(x) \rbrace &= \mu_r = 0 \\
+    Var\lbrace r(x)\rbrace &= \sigma_r^2 \\
+    Corr\lbrace r(x), r(x')\rbrace &= \rho_r(\tau) \\
+    \tau = \dfrac{|x-x'|}{10}
+    \end{split}
+\end{equation}
+where $\rho_r(\tau)$ is the spatial correlation function. Discretize $D$ as $L = \lbrace 1, 2, \dots, 50 \rbrace$, we will later look at the discretized Gaussian random field $\lbrace r(x) : x\in L \rbrace$.
+
+
+## Problem 1a
+To ensure the positive definetness of all covariance matrices, we rely on having a positve definite corrolation function. A positive definite correlation function guarantees that the covariance matrix of our Gaussian random field is well defined for all choices of observation points and for all dimensions.  
+
+A function $c(\vect \tau): \mathbb{R}^q$ i positive definite if the following is satisfied:
+\begin{equation}\label{posdefeq}
+    \begin{split}
+        \sum_{i=1}^n\sum_{j=1}^n\alpha_i\alpha_j c(\vect x_i - \vect x_j) \geq 0,
+    \end{split}
+    \quad
+    \begin{split}
+        &\forall \alpha_1, \dots, \alpha_n \in \mathbb{R} \\
+        &\forall n \in \mathbb{N}, \quad n \geq 2 \\
+        &\forall \vect x_1, \dots \vect x_n \in \mathbb{R}^q
+  \end{split}
+\end{equation}
+Any $n \times n$ matrix, $\matr Q = \left[ c(\vect x_i - \vect x_j) \right]_{ij}$ constructed with a positive definite $c(\vect \tau)$ with vectors $\lbrace \vect x_i \rbrace_{i=1}^n$ chosen as in \eqref{posdefeq} would clearly be positive definite. As for all $\vect \alpha = (\alpha_1, \dots, \alpha_n) \in \mathbb{R}^n$ we have:
+\begin{equation}
+    \vect \alpha^T \matr Q \vect \alpha =   \sum_{i=1}^n\sum_{j=1}^n\alpha_i\alpha_j c(\vect x_i - \vect x_j) \geq 0
+\end{equation}
+So it would be safe to use $\matr Q$ as a covariance matrix, and it would satisfy the requirements of the multivariate normal distribution.
+
+We now go on to look at the the powered exponential correlation function:
+
+\begin{equation}
+    \begin{split}
+            \rho(\tau) = \exp(-\tau^{\nu}) 
+    \end{split}, \quad
+    \begin{split}
+    \nu \in \left(0, 2 \right]
+    \end{split}
+\end{equation}
+for later case studies we will look at parameters $\nu_r \in \lbrace 1, 1.9 \rbrace$. We note that and increased $\nu$ would lower the exponent and thus give less correlation. 
+
+We also want to study the Matern correlation function
+\begin{equation}
+    \begin{split}
+            \rho_r(\tau) = \dfrac{2^{1-\nu}}{\Gamma(\nu)}\tau^v\mathcal{B}_\nu(\tau), \quad
+    \end{split}
+    \begin{split}
+        \nu \in \mathbb{R}_+
+    \end{split}
+\end{equation}
+$\mathcal{B}_\nu$ is the bessel function. We want to look at the matern with parameters $\nu_r \in \lbrace 1, 3 \rbrace$. For both we also use $\sigma^2_r \in \lbrace 1, 5\rbrace$
+
+# TODO: FIGURE HERE 
+
+The two correlation functions are plotted in Figure \ref{fig:materncorr} and in Figure \ref{fig:poweredcorr} for $\tau \in \mathbb{R}_\oplus$. We note that these functions both are positive definite. From the figures we also note that both correlation functions for the different parameters seems to satisfy ergodicity, correlation drops to zero the further apart to points are, this is a neccesary trait in our Gaussian RF. 
+
+For the matern corrolation we see that an increase of $\nu$ lead to slower fall in correlation with distance. The same goes for the exponential. We also note that the Matern seems to drop slower in correlation than the exponential correlation function . 
+
+The variogram function is defined as:
+\begin{equation}\label{eq:variogram}
+    \begin{split}
+        \gamma_r(\tau)  &= \frac{1}{2} Var\lbrace r(x) - r(x') \rbrace \\
+        &= \frac{1}{2} (Var\lbrace r(x) \rbrace + Var\lbrace r(x') \rbrace - 2 Corr\lbrace r(x), r(x')) \rbrace\\
+        &=\sigma_r^2(1-\rho_r(\tau))
+    \end{split}
+\end{equation}
+Looking at \eqref{eq:variogram} we see that if $\sigma_r^2 = 1$ then the corrolation function and the variogram functions would respectively increase and decrease at same rate in with respect to an increase in $\tau$. In essence the variogram function tells us how much variance we have in our estimation of $x'$ that is $\tau$ away from an observed $x$
+
+We display the variograms for our model parameters in Figure \ref{fig:variograms}.
+
+In both figures we see that the value of $\sigma^2$ sets a roof on the variance of points far away. Higher values of $\sigma^2$ also seems to increase the max achieved variance. For the matern variogram increased $\nu$ seems to increase corrolation to neighbouring points. For the powered exponential an increase in $nu$ seems to increase corroloation, but not as the same rate as with the Matern
+
+# Problem 2 Gaussian RF - real data
+Given the domain $D = [(0,315) \times (0,315)] \subset \mathbb{R^2}$. We let $\vect{d}= r(\vect{x_1^0)}, ..., r(\vect{x_{52}^0)})^T$. 
+
+## Problem 2a: Display of the data
+
+The data is displayed with an image plot, a contour plot and the exact points as shown in the figure \ref{fig:fig1} below.
+```{r fig1, fig.asp=1, fig.cap="\\label{fig:fig1}, fig.height=0.5"}
+topo <- read.table("https://www.math.ntnu.no/emner/TMA4250/2020v/Exercise1/topo.dat",sep="")
+# linear interpolation
+topo.li <- interp(topo$x, topo$y, topo$z)
+image.plot(topo.li)
+contour(topo.li,add=T)
+points(topo$x,topo$y)
+```
+
+It was observed that the data points did not move in the same direction as with the x and y cordinates (see figure \ref{fig:fig2} a;b). This suggest that the data is not mean stationary. Moreover, a density plot for the data points in figure {fig:fig2} c) shows a skewness in the data, making the Guassianity assumption doubtful. Hence a stationary Gaussian RF may not be appropriate.
+
+```{r fig2, echo=FALSE,  include=TRUE, fig.asp=1,fig.height=0.5,fig.cap="\\label{fig:fig2} Plot of the data points with respect to their a) x-cordinates and b) y-cordinates; and c) shows the density distribution of the terrain elevation observations."}
+#Checking for stationarity
+g1 <- ggplot(data=topo)+geom_point(mapping = aes(x=topo$x, y = topo$z))+ theme_classic()+xlab("x")+ylab("z")+ labs(title="a)")+theme(aspect.ratio = 1)
+g2 <- ggplot(data=topo)+ geom_point(mapping = aes(x=topo$y, y = topo$z))+ theme_classic()+xlab("y")+ylab("z")+ labs(title="b)")+theme(aspect.ratio=1)
+g3 <- ggplot(data=topo) + geom_histogram(mapping=aes(x=topo$z, y = ..density..))#+ geom_frequency(mapping = aes(x=topo$z, y= ..density..))
+ggarrange(g1, g2, g3,nrow=2,ncol=2, widths = c(1,1), heights = c(1,1))
+```
+
+
+## Problem 2b
+Let 
+$$
+\{r (\vect{x}); \vect{x} \in D \subset \mathbb{R^2}\}
+$$
+be the Gaussian RF that is used to model the domain $D$.
+
+Given that $E\{r(x)\} = (\vect{gx})^T \vect{\beta_r}$, $Var\{r(\vect{x})\} = \sigma_r^2$ and $Corr(r(\vect{x}), r(\vect{x'})) = \rho_r(\frac{\tau}{\xi})$. We assume that $\sigma_r^2, \xi$ are assumed known but $\vect{\beta_r}$ is unknown. This is therefore a universal krigging problem. 
+
+Let the krigging predictor be:
+$$
+\vect{\hat{r}_0} = \vect{\alpha}^T \vect{r^d} 
+$$
+
+We discretise the predictor as:
+$$
+\{\vect{r_{\Delta} (x)} = r(\vect{x}) - \mu_r^0 - \sum_{i=1}^{n_g} \beta_r^j g_j(\vect{x}); \vect{x} \in  D\}
+$$
+
+For the estimator to be unbiased, 
+
+$$E\{\vect{\hat{r}_0} - \vect{{r}_0} =0 \} \implies \sum_{i=1}^m \alpha_iE\{r_i^d\} - E\{ \vect{{r}_0}\} = 0$$ 
+
+$$\sum_{i=1}^m \sum_{j=1}^{n_g} \alpha_i \beta_r^j g_j(\vect{x}_i) = \sum_{j}\beta_r^j g_j(\vect{x}_0)$$
+
+
+For the estimator to be unbiased, 
+
+$\sum_{i=1}^m \alpha_i g_j(\vect{x}_i) = \sum_{j}\beta_r^j g_j(\vect{x}_0)$.
+
+\begin{equation*}
+    \begin{split}
+      Var\{\vect{\hat{r}_0} - \vect{{r}_0} \} &= E\{(\vect{\hat{r}_0} - \vect{{r}_0})^2 \} \\
+                                       &= Var\{\alpha_i \{r_i^d\} - \vect{{r}_0}\} \\
+                                        &= \sigma^2 \sum_{i=1}^n\sum_{j=1}^m \alpha_i\alpha_j\rho_{ij} + \sigma^2 + 2 \sigma^2\sum_{j=1}^m\alpha_j\rho_{j0}\\
+    \end{split}
+\end{equation*}
+
+
+Hence, we find $\vect{\hat\alpha}$ such that
+$$
+\vect{\hat\alpha} = argmin_{\vect{\alpha}} Var\{\vect{\hat{r}_0} - \vect{{r}_0} \}
+$$
+and subject to the constraint $\sum_{i=1}^m \alpha_i g_j(\vect{x}_i) = \sum_{j}\beta_r^j g_j(\vect{x}_0)$ for $j= 1,2,...,n_g$.
+
+## Problem 2c
+
+Considering the case with $E(r(\vect x)) = \beta_1$, we estimated the universal krigging predictor and variance as follows:
+
+```{r fig3, echo=FALSE,  include=TRUE, fig.asp=1,fig.height=0.5,fig.cap="\\label{fig:fig3} Krigging predictions and prediction variance of the ordinary krigging method."}
+x <- topo$x
+y <- topo$y
+s <- cbind(x,y)
+x1 <- seq(1, 315, length.out = 100)
+x2 <- seq(1, 315, length.out = 100)
+sp <- expand.grid(x1,x2)
+geodata <- read.geodata("https://www.math.ntnu.no/emner/TMA4250/2020v/Exercise1/topo.dat",sep="",header = TRUE, coords.col = 1:2)
+kripar <- krige.control(type.krige = "OK", cov.model = "powered.exponential",cov.pars = c(2500,100), kappa = 1.5)
+pred <- krige.conv(geodata, coords = s, data=geodata$data, locations = sp, krige = kripar)
+pred.li <- interp(sp$Var1, sp$Var2, pred$predict)
+var.li <- interp(sp$Var1, sp$Var2, sqrt(pred$krige.var))
+
+dda <- data.frame(x=sp$Var1, y= sp$Var2,elev= pred$predict)
+gg1 <- ggplot(dda, aes(x=x, y=y, col= elev))+
+  geom_point()+
+  scale_color_gradientn(colours = rainbow(10))+
+  theme_classic()+
+  theme(aspect.ratio = 1)+
+  labs(title = "Krigging predictions")
+
+
+dda1 <- data.frame(x=sp$Var1, y= sp$Var2,elev= sqrt(pred$krige.var))
+gg2 <- ggplot(dda1, aes(x=x, y=y, col= elev))+
+  geom_point()+
+  scale_color_gradientn(colours = rainbow(10))+
+  theme_classic()+
+  theme(aspect.ratio = 1)+
+  labs(title = "Prediction variance")
+
+ggarrange(gg1,gg2, ncol=2, widths = c(1,1), heights = c(1,1))
+
+```
+
+## Problem 2d
+
+The resulting polynomial function becomes:
+$$
+\vect{(gx)} = (1, x_v, x_h, x_vx_h, x_v^2, x_h^2)
+$$
+The expected value of $r(\vect{x})$ then is:
+$$
+E \{r(\vect{x}) \} = \beta_1 + \beta_2x_v + \beta_3x_h + \beta_4x_vx_h + \beta_5x_v^2 + \beta_6x_h^2 .
+$$
+
+We present the predictions and the associated variance in the figure below:
+```{r fig4, echo=FALSE, fig.asp=1, fig.cap="\\label{fig:fig4}, fig.height=0.5"}
+
+kripar1 <- krige.control(type.krige = "OK", cov.model = "powered.exponential", trend.d="2nd",trend.l="2nd" ,cov.pars = c(2500,100), kappa = 1.5)
+pred1 <- krige.conv(geodata, coords = s, data=geodata$data, locations = sp, krige = kripar1)
+pred1.li <- interp(sp$Var1, sp$Var2, pred1$predict)
+var1.li <- interp(sp$Var1, sp$Var2, sqrt(pred1$krige.var))
+
+dd <- data.frame(x=sp$Var1, y= sp$Var2,elev= pred1$predict)
+gg1 <- ggplot(dd, aes(x=x, y=y, col= elev))+
+  geom_point()+
+  scale_color_gradientn(colours = rainbow(10))+
+  theme_classic()+
+  theme(aspect.ratio = 1)+
+  labs(title = "Krigging predictions")
+  
+
+dd1 <- data.frame(x=sp$Var1, y= sp$Var2,elev= sqrt(pred1$krige.var))
+gg2 <- ggplot(dd1, aes(x=x, y=y, col= elev))+
+  geom_point()+
+  scale_color_gradientn(colours = rainbow(10))+
+  theme_classic()+
+  theme(aspect.ratio = 1)+
+  labs(title = "Prediction variance")
+
+ggarrange(gg1,gg2, ncol=2, widths = c(1,1), heights = c(1,1))
+```
+
+
+## Problem 2e
+
+
+```{r echo=FALSE}
+dp <- cbind(100,100)
+kripar <- krige.control(type.krige = "OK", cov.model = "powered.exponential", cov.pars = c(2500,100), kappa = 1.5)
+pred <- krige.conv(geodata, coords = s, data=geodata$data, locations = dp, krige = kripar)
+muhat <- pred$predict
+sdhat <- sqrt(pred$krige.var)
+res = (850-muhat)/sdhat
+ans <- round(1 - pnorm(res),2)
+ans2 <- round(muhat + qnorm(0.9)*sdhat,2)
+```
+
+We now consider the grid node, $\vect{x_0} = (100,100)$. Using the ordinary krigging, we estimated the predicted mean as `r muhat` and the predicted variance as `r sdhat`. Assuming Gaussianity of the data,
+
+\begin{equation*}
+    \begin{split}
+P(r\{\vect{x_0}\} > 850) &=P\bigg( \frac{r\{\vect{x_0}\}- E(r\{\vect{x_0}\})}{\sqrt{Var(r\{\vect{x_0}\})}}> \frac{850- E(r\{\vect{x_0}\})}{\sqrt{Var(r\{\vect{x_0}\})}} \bigg)\\
+&= 1 - \Phi\bigg(\frac{850- E(r\{\vect{x_0}\})}{\sqrt{Var(r\{\vect{x_0}\})}} \bigg)
+  \end{split}
+\end{equation*}
+
+The resulting probability is `r ans`.
+
+To obtain the elevation for which it is 0.90 probability that the true elevation is below it, we used the formular,
+
+\begin{equation*}
+    \begin{split}    
+P(r\{\vect{x_0}\} >r\{\vect{x_{new}}\} ) &= 0.90\\
+r\{\vect{x_{new}}\} &= E(r\{\vect{x_0}\}) + \phi(0.90) \sqrt{Var(r\{\vect{x_0}\})}
+  \end{split}
+\end{equation*}
+
+We obatained `r ans2`m to be that elevation that satifies the preamble.
+
+
