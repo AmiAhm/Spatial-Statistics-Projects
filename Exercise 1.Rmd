@@ -38,9 +38,12 @@ library(latex2exp)
 library(geoR)
 library(tidyr)
 library(dplyr)
+library(foreach)
+
+text_size = 15
 ```
 
-
+\newpage
 # Problem 1
 Let $\lbrace r(x) : x \in \text{D} : \left[1, 50\right]\subset\mathbb{R}^1\rbrace$. Assume it is modelled as a stationary one dimensional Gaussian random field with the following parameters:
 \begin{equation}\label{prob1eq}
@@ -53,6 +56,7 @@ Let $\lbrace r(x) : x \in \text{D} : \left[1, 50\right]\subset\mathbb{R}^1\rbrac
 \end{equation}
 where $\rho_r(\tau)$ is the spatial correlation function. Discretize $D$ as $L = \lbrace 1, 2, \dots, 50 \rbrace$, we will later look at the discretized Gaussian random field $\lbrace r(x) : x\in L \rbrace$.
 
+TODO: Same ylim on realisations 
 
 ## Problem 1a
 To ensure the positive definetness of all covariance matrices, we rely on having a positve definite corrolation function. A positive definite correlation function guarantees that the covariance matrix of our Gaussian random field is well defined for all choices of observation points and for all dimensions.  
@@ -98,9 +102,69 @@ We also want to study the Matern correlation function
 \end{equation}
 $\mathcal{B}_\nu$ is the bessel function. We want to look at the matern with parameters $\nu_r \in \lbrace 1, 3 \rbrace$. For both we also use $\sigma^2_r \in \lbrace 1, 5\rbrace$
 
-# TODO: FIGURE HERE 
+```{r fig1a1, fig.height=3.5, fig.width=7, fig.cap="\\label{fig:fig1a1} Plotting matern and exponential correlation", }
+from = 1
+to = 50
+xx <- seq(from = from, to = to, by = 1)
+vs.exponential <- c(1.1,1.9)
+vs.matern <- c(1, 3)
+sigma2s <- c(1, 5)
 
-The two correlation functions are plotted in Figure \ref{fig:materncorr} and in Figure \ref{fig:poweredcorr} for $\tau \in \mathbb{R}_\oplus$. We note that these functions both are positive definite. From the figures we also note that both correlation functions for the different parameters seems to satisfy ergodicity, correlation drops to zero the further apart to points are, this is a neccesary trait in our Gaussian RF. 
+tau.fun <-function(x, y){
+  abs(x-y)/10
+}
+
+matern.cov.fun <- function(tau, nu, sigma2){
+  sigma2 * Matern(d = tau, nu = nu)
+}
+
+powered.exp.cov.fun <- function(tau, nu, sigma2){
+  sigma2 * exp(- (tau^nu))
+}
+
+
+x <- seq(from = 0 ,to = 50, by = 0.001)
+# Plotting matern stuff
+y <- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[1]))
+p1 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+y <- y <- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[2]))
+p1 <- p1 + geom_line(aes(x = x, y= y, col = "blue"), data = as.data.frame(cbind(x,y)))
+p1 <- p1 + ggtitle("a) Matern correlation") + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
+p1 <- p1 +
+  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.matern[1])
+                                             ,paste("$\\nu =$", vs.matern[2]))))) +
+  theme_classic() +
+  theme(legend.key.size = unit(1.5, 'lines'),
+        legend.position = 'top',
+        text = element_text(size=12),
+        legend.title = element_blank(),
+        legend.spacing.y = unit(0, "mm"))
+  
+
+# Plotting powered exponential
+y <- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[1]))
+p2 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+y <- y <- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[2]))
+p2 <- p2 + geom_line(aes(x = x, y= y, col = "blue"), data = as.data.frame(cbind(x,y)))
+p2 <- p2 + ggtitle(TeX("b) Powered exponential correlation")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
+p2 <- p2 +
+  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.exponential[1])
+                                                ,paste("$\\nu =$", vs.exponential[2]))))) +
+  theme_classic() +
+  theme(legend.key.size = unit(1.5, 'lines'),
+        legend.position = 'top',
+        text = element_text(size=12),
+        legend.title = element_blank(),
+        legend.spacing.y = unit(0, "mm"))
+
+p <- ggarrange(p1, p2, ncol = 2, nrow = 1)
+annotate_figure(p, top = text_grob("Displaying correlation", size = 17))
+
+
+```
+
+
+The two correlation functions are plotted in Figure \ref{fig:fig1a1} for $\tau \in \mathbb{R}_\oplus$. We note that these functions both are positive definite. From the figures we also note that both correlation functions for the different parameters seems to satisfy ergodicity, correlation drops to zero the further apart to points are, this is a neccesary trait in our Gaussian RF. 
 
 For the matern corrolation we see that an increase of $\nu$ lead to slower fall in correlation with distance. The same goes for the exponential. We also note that the Matern seems to drop slower in correlation than the exponential correlation function . 
 
@@ -114,10 +178,574 @@ The variogram function is defined as:
 \end{equation}
 Looking at \eqref{eq:variogram} we see that if $\sigma_r^2 = 1$ then the corrolation function and the variogram functions would respectively increase and decrease at same rate in with respect to an increase in $\tau$. In essence the variogram function tells us how much variance we have in our estimation of $x'$ that is $\tau$ away from an observed $x$
 
-We display the variograms for our model parameters in Figure \ref{fig:variograms}.
+```{r fig1a2, fig.height=3.5, fig.width=7, fig.cap="\\label{fig:fig1a2} Plotting variograms", }
+
+# Matern exponential
+y <- sigma2s[1]*(1-  sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[1])))
+p3 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+y <- sigma2s[1]*(1- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[2])))
+p3 <- p3 + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+y <- sigma2s[2]*(1-  sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[1])))
+p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)))
+y <- sigma2s[2]*(1-  sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[2])))
+p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+p3 <- p3 + ggtitle(TeX("a) Matern")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma_r(\\tau)$")) +
+  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[2])
+                                                ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2])))),
+                       guide = guide_legend(label.hjust = 0.1)) +
+  theme_classic() +
+  theme(legend.key.size = unit(1.5, 'lines'),
+        legend.position = 'top',
+        text = element_text(size=12),
+        legend.title = element_blank(),
+        legend.spacing.y = unit(0, "mm"))
+
+# Powered exponential
+y <- sigma2s[1]*(1-  sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[1])))
+p4 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+y <- sigma2s[1]*(1- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[2])))
+p4 <- p4 + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+y <- sigma2s[2]*(1-  sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[1])))
+p4 <- p4 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)))
+y <- sigma2s[2]*(1-  sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[2])))
+p4 <- p4 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+p4 <- p4 + ggtitle(TeX("b) Powered exponential")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma_r(\\tau)$")) +
+  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.exponential[1], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.exponential[2], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.exponential[1], ", $\\sigma^2 =$",sigma2s[2])
+                                                ,paste("$\\nu =$", vs.exponential[2], ", $\\sigma^2 =$",sigma2s[2])))),
+                       guide = guide_legend(label.hjust = 0.1)) +
+  theme_classic() +
+  theme(legend.key.size = unit(1.5, 'lines'),
+        legend.position = 'top',
+        text = element_text(size=12),
+        legend.title = element_blank(),
+        legend.spacing.y = unit(0, "mm"))
+p <- ggarrange(p3, p4, ncol = 2, nrow = 1)
+annotate_figure(p, top = text_grob("Displaying variograms", size = 17))
+
+```
+
+We display the variograms for our model parameters in Figure \ref{fig1a2}.
 
 In both figures we see that the value of $\sigma^2$ sets a roof on the variance of points far away. Higher values of $\sigma^2$ also seems to increase the max achieved variance. For the matern variogram increased $\nu$ seems to increase corrolation to neighbouring points. For the powered exponential an increase in $nu$ seems to increase corroloation, but not as the same rate as with the Matern
 
+
+\newpage
+
+## Problem 1b
+
+We use the corrolation function $\rho_r(\tau)$ to construct a corrolation matrix. The corrolation matrix would have the following form:
+\begin{equation}
+    \matr \Sigma_r^\rho = 
+    \begin{bmatrix}
+        \rho_r(1, 1) & \rho_r(1, 2) & \dots & \rho_r(1, 50) \\
+        \rho_r(2, 1) & \rho_r(2, 2) & \dots & \rho_r(2, 50) \\
+        \vdots & \vdots & \ddots & \vdots \\
+        \rho_r(50, 1) & \rho_r(50, 2) & \dots & \rho_r(50, 50)
+    \end{bmatrix}
+\end{equation}
+$\rho_r(x, x')$ denotes $\rho_r(\tau) = \rho_r(|x-x'|/10)$. With variance $\sigma_r^2$ the prior get the covariance matrix $\matr \Sigma_r = \sigma_r^2 \matr \Sigma_r^\rho$. From \eqref{prob1eq} we have an expected value of:
+\begin{equation}
+    \vect \mu_r = (0, \dots, 0)^T
+\end{equation}
+Which gives the prior a distribution of:
+\begin{equation}
+    \phi_{50}(\vect r ; \vect \mu_r, \matr \Sigma_r)
+\end{equation}
+Which has pdf:
+\begin{equation}
+    (2\pi)^{-\frac{50}{2}}\det(\matr \Sigma_r)^{-\frac{1}{2}}\exp\left(-\frac{1}{2}\vect x^T\matr \Sigma_r^{-1}\vect x\right)
+\end{equation}
+
+We simulate four realisations of the field for the different parameters.
+
+```{r fig1b1, fig.height=7, fig.width=7, fig.cap="\\label{fig:fig1b1} Realizisations of prior, matern", fig.align="center" }
+# Function that returns covariance matrix using cov.spatial
+cov.matr <- function(xx, yy, sigma2, nu, cov.fun, tau.fun){
+  cov.fun.temp <- function(tau) cov.fun(tau = tau, nu = nu, sigma2 = sigma2)
+  cov.matrix <- matrix(NA, length(xx), length(yy))
+  foreach(i=1:length(xx)) %:%
+    foreach(j=1:length(yy)) %do%{ # can switch j=1 with j=1 if quadratic
+      d <- tau.fun(xx[i],yy[j])
+      a <- cov.fun.temp(d)
+      cov.matrix[i, j] = a
+    }
+  return(cov.matrix)
+}
+
+
+n.realizations <- function(n, xx, sigma2, nu, cov.fun, tau.fun, title = "title"){
+  set.seed(1234)
+  # Create covariance matrix
+  cov.matrix = cov.matr(xx, xx, sigma2 = sigma2, nu = nu, cov.fun = cov.fun, tau.fun = tau.fun)
+  
+  # Expected value
+  mu = rep(0, length(xx))
+  
+  # Draw from multivariate normal
+  draw <- MASS::mvrnorm(n = n, mu = mu, Sigma = cov.matrix)
+  
+  # Transform the data
+  draw <- t(draw)
+  draw <- cbind(xx, draw)
+  observations <- Reduce(rbind, lapply(2:ncol(draw), function(col) cbind(draw[,c(1, col)], col)))
+  observations <- as.data.frame(observations)
+  colnames(observations) <- c("x", "observed_value", "trial")
+  observations$trial <- as.factor(observations$trial)
+  
+  # Plot the data
+  pl <- ggplot() + theme_classic() +
+    theme(legend.key.size = unit(1.5, 'lines'),
+        legend.position = 'top',
+        text = element_text(size=12),
+        legend.title = element_blank(),
+        legend.spacing.y = unit(0, "mm"))  +
+    xlab("x")  + ylab("r(x | d)")
+  pl <- pl + geom_line(data = observations, aes(x = x, y = observed_value, color = trial)) + ggtitle(TeX(paste(title, "$\\nu =$", nu, ", $\\sigma^2 =$",sigma2))) +
+     scale_color_discrete("Trial",labels = c("1", "2", "3", "4"),
+                       guide = guide_legend(label.hjust = 0.1)) 
+  list(p = pl, dat = draw)
+}
+n <- 4
+p1 <- n.realizations(n, xx, sigma2 = sigma2s[1], nu = vs.matern[1], cov.fun = matern.cov.fun, tau.fun = tau.fun, title = "a) ")$p
+p2 <- n.realizations(n, xx, sigma2 = sigma2s[1], nu = vs.matern[2], cov.fun = matern.cov.fun, tau.fun = tau.fun, title = "b) ")$p
+p3 <- n.realizations(n, xx, sigma2 = sigma2s[2], nu = vs.matern[1], cov.fun = matern.cov.fun, tau.fun = tau.fun, title = "c) ")$p
+res <- n.realizations(n, xx, sigma2 = sigma2s[2], nu = vs.matern[2], cov.fun = matern.cov.fun, tau.fun = tau.fun, title = "d) ")
+p4 <- res$p
+matern_dat <- res$dat
+plot1 <- ggarrange(p1,p2, p3, p4, ncol = 2, nrow = 2)
+plot1 <- annotate_figure(plot1, top = text_grob("Matern realization", size = 17))
+plot1
+
+```
+
+```{r fig1b2, fig.height=7, fig.width=7, fig.cap="\\label{fig:fig1b2} Realizisations of prior, powered exponential", fig.align="center" }
+
+p5 <- n.realizations(n, xx, sigma2 = sigma2s[1], nu = vs.exponential[1], cov.fun = powered.exp.cov.fun, tau.fun = tau.fun, title = "e) ")$p
+p6 <- n.realizations(n, xx, sigma2 = sigma2s[1], nu = vs.exponential[2], cov.fun = powered.exp.cov.fun, tau.fun = tau.fun, title = "f) ")$p
+p7 <- n.realizations(n, xx, sigma2 = sigma2s[2], nu = vs.exponential[1], cov.fun = powered.exp.cov.fun, tau.fun = tau.fun, title = "g) ")$p
+p8 <- n.realizations(n, xx, sigma2 = sigma2s[2], nu = vs.exponential[2], cov.fun = powered.exp.cov.fun, tau.fun = tau.fun, title = "h) ")$p
+plot2 <- ggarrange(p5, p6, p7, p8, ncol = 2, nrow = 2)
+plot2 <- annotate_figure(plot2, top = text_grob("Powered exponential realization", size = 17))
+plot2
+
+```
+
+
+The results are plotted in Figure \ref{fig:fig1b1} and Figure \ref{fig:fig1b2}. We note that an increased variance seems to increase fluctuation (comparing c) d) g) and h) to the others). For the matern we also see that an increased $nu$ seems to make the process smoother. For both correlation functions increased $\nu$ seems to increase "air-time" when the process is strays away from expected 0. 
+
+
+\newpage
+
+## Problem 1c
+
+We now want to develop a posterior model. Assume that we have observed the values at $x \in \lbrace 10, 25, 30 \rbrace$. Organise them as:
+\begin{equation}
+    \lbrace d(x); x \in \lbrace 10, 25, 30 \rbrace \subset L  \rbrace 
+\end{equation}
+We also assume we have an observation error $\sigma^2_\epsilon = \lbrace 0, 0.25 \rbrace$. In general we have
+\begin{equation}
+    d(x) = r(x) + \epsilon(x), \quad x \in \lbrace 10, 25, 30 \rbrace \\
+   \epsilon(x) \sim N(0, \sigma_\epsilon^2), \iid \\
+   r(x) \text{ and } \epsilon(x) \text{ independent} \\
+   \epsilon(x) \text{ and } \epsilon(x') \text{ independent identically distributed} 
+\end{equation}
+
+As we both $\epsilon(x)$ and $r(x)$ are Gaussian, a linear product of the two would also be. 
+
+We further note:
+\begin{equation}
+    E(d(x)) = E(r(x)) + E((\epsilon(x))) = 0
+\end{equation}
+When $x\neq x'$
+\begin{equation*}
+    \begin{split}
+        \Cov(d(x), d(x')) &= \Cov(r(x)+\epsilon(x), r(x') + \epsilon(x')) \\
+        &= \Cov(r(x), r(x')) + \Cov(\epsilon(x), \epsilon(x')) \\
+        &= \sigma_r^2\rho_r(\tau)
+    \end{split}
+\end{equation*}
+And: 
+\begin{equation}
+    \begin{split}
+        \Cov(d(x), d(x)) &= \Cov(r(x)+\epsilon(x), r(x) + \epsilon(x)) \\ 
+        &= \Cov(r(x), r(x)) + \Cov(\epsilon(x), \epsilon(x)) \\
+        &= \sigma_r^2\rho_r(\tau) + \sigma_e^2
+    \end{split}
+\end{equation}
+We organise the observed points in a $k \times 1$ vector,$\vect y = (10, 25, 30)^T$, where $k = 3$. Further let the observed values of the random field be: 
+\begin{equation}
+    \vect d(\vect y) = ( d(10), d(25), d(30))^T
+\end{equation}
+If we denote $\matr \Sigma_\rho^d$ as the correlation matrix generated by $\rho(\tau)$ between the points $\vect x$
+we see:
+\begin{equation}
+    \Cov(\vect d(\vect x), \vect d(\vect x')) = \sigma^2_e \matr I_k +\sigma^2_r\matr \Sigma^\rho_d
+\end{equation}
+
+Using the calculations above $\vect d$ thus have the following pdf:
+\begin{equation}
+    p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2) = (2\pi)^{k/2}\det(\matr \Sigma_\rho^d)^{-1/2}\exp(\frac{1}{2}\vect d^T(\matr\Sigma_\rho^d)^{-1}\vect d)
+\end{equation}
+The value $\sigma_e^2$ would then have the following likelihood function:
+\begin{equation}
+    L(\sigma_e^2 | \vect d(\vect x), \sigma_r^2)=p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2)
+\end{equation}
+The integral 
+\begin{equation}
+    \int_{0}^{\infty}L(\sigma_e^2 | \vect d(\vect x), \sigma_r^2)d\sigma^2 = \int_{0}^{\infty}p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2) d\sigma^2
+\end{equation}
+goes to infinity, thus $L(\sigma_e^2 | \vect d(\vect x), \sigma_r^2)$ is not a pdf. If we try to estimate $\sigma^2_\epsilon$ by the expected value of $\sigma_e^2$ derived when believing $L(\sigma^2_\epsilon|\cdot)$ is a pdf, we would expect values that goes to infinity, which would be wrong. 
+
+
+
+## Problem 1d
+
+Assume now that $\sigma_r^2 = 5$ and that we have observed $\vect d(\vect y)$ with error $\sigma_\epsilon^2 = \in \lbrace 0, 0.25 \rbrace$. Want to find the distribution of $\left[ \vect r | \vect d \right]$. Know that both $\vect r$ and $\vect d$ are multivariate normal. Thus conditioning $\vect r$ on $\vect d$ would give a multivariate normal distribution with the following parameters: 
+
+\begin{equation}
+     \vect\mu_{\vect l | \vect d} = \vect \mu_r+ \matr \Sigma_{\vect r, \vect d} \matr \Sigma_{\vect d}^{-1}(\vect d - \vect \mu_{\vect d})
+\end{equation}
+
+\begin{equation}
+      \vect\Sigma_{\vect r | \vect d} = \matr \Sigma_{\vect r} - \matr \Sigma_{\vect r, \vect d} \matr \Sigma_{\vect d}^{-1}\Sigma_{\vect d, \vect r}
+\end{equation}
+
+Note $\Sigma_{\vect r, \vect d} = \Sigma_{\vect d, \vect r}^T$ and they are respectively $50\times 3$ and $3\times 50$ where the first has elements $[\Cov\lbrace r(x_i), d(x_j)\rbrace]_{ij}$ where:
+
+\begin{equation}
+    \begin{split}
+        \Cov\lbrace r(x_i), d(x_j)\rbrace &= \Cov\lbrace r(x_i), r(x_j) + \epsilon(x_j)\rbrace  \\
+        &= \Cov\lbrace r(x_i), r(x_j)\rbrace \\ 
+        &= \sigma_r^2\rho_r(x_i, x_j)
+    \end{split}
+\end{equation}
+
+Assuming we have realisations of $\vect d$ from simulated data we can study how $\vect r | \vect d$ acts. 
+
+```{r fig1d1, fig.height=4, fig.width=7, fig.cap="\\label{fig:fig1d1} Posterior estimation, matern $\\sigma^2 = 5$, $\\nu = 3$", fig.align="center" }
+  
+  sigma2 <- 5
+  phi <- vs.matern[2]
+  cov.fun <- matern.cov.fun
+
+  # Structure observations from 
+  set.seed(1234)
+  cov.matrix = cov.matr(xx, xx,sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+  mu = rep(0, length(xx))
+  # Draw from multivariate normal
+  draw <- MASS::mvrnorm(n = n, mu = mu, Sigma = cov.matrix)
+  observations <-draw[1,]
+  
+  # Function that retruns ovservations error id matrix
+  observation_error <- function(dd, sigma_e_2){
+    # dd
+    res <- diag(1, length(dd))*sigma_e_2
+    res
+  }
+  # Observations points
+  dd = c(10, 25, 30)
+  
+  # Assume these are what is actually observed
+  ddy <-observations[dd]
+  
+  
+  generate_plot <- function(title, sigma_e_2){
+    # Generate conditional paramteres
+    mu.d = rep(0, length(dd))
+    mu.r = rep(0, length(xx))
+    sigma.rr= cov.matr(xx,xx, sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+    
+    sigma.dd = cov.matr(dd, dd, sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun) + observation_error(dd, sigma_e_2)
+    sigma.rd = cov.matr(xx, dd,sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+    sigma.dr = t(sigma.rd)
+    sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
+    mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
+    # 90 percent confidence:
+    c = qnorm(p = 0.95)
+    variances = diag(sigma.r.d) 
+    variances[variances < 1e-12] = 0
+    min.90 = mu.r.d. - c*sqrt(variances)
+    max.90 = mu.r.d. + c*sqrt(variances)
+    
+    min.90 <- as.vector(min.90)
+    max.90 <- as.vector(max.90)
+    
+    p <- ggplot(data = as.data.frame(cbind(xx, mu.r.d., min.90, max.90, observations))) +
+      geom_line(aes(x = xx, y = mu.r.d.)) +
+      geom_line(aes(x = xx, y = min.90), linetype = "dashed") + 
+      geom_line(aes(x = xx, y =max.90), linetype = "dashed") +
+      geom_ribbon(aes(x = xx, ymin = min.90, ymax = max.90), alpha = 0.5, fill = "skyblue") + 
+      geom_point(aes(x = xx, y = mu.r.d.)) +
+      geom_point(aes(x = xx, y = min.90), alpha = 0.5) +
+      geom_point(aes(x = xx, y = max.90), alpha = 0.5) +
+      #geom_point(aes(x = xx, y = observations), alpha = 0.5, color = "red") +
+      geom_line(aes(x = xx, y = matern_dat[,2]), color = "red") +# The actual realisation
+      geom_vline(xintercept = dd) + 
+      ggtitle(title) +
+      xlab("x") +
+      ylab("r|d")  
+      
+    p
+  }
+  p1 <- generate_plot(title = "a) Without observation error", 0)
+  p2 <- generate_plot("b) With observation error", .25)
+    
+  p <- ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1)
+  p <- annotate_figure(p, top = text_grob("Matern Posterior Realisation", size = 17))
+  p
+
+```
+
+
+
+We compute two corresponding predictions for the spatial variable $\lbrace \hat r(x);x \in L\rbrace$ with associated 0.9 predictions intervals and display them in Figure \ref{fig:fig1d1}. We use the same realisations Trial 1 in d) in Figure \ref{fig:fig1b1}. 
+
+Here we have parameters $\nu_r  = 3$ and  $\sigma_r^2 = 5$. As discussed earlier, we would with these values see much corrolation. From the variogram, points with distance up to about 20 in distance would impact each other, this is reflected in the figure, as the observation points shifts large parts of the process away from 0. But still, even though we have a lot of correlation, we see that the 90\% confidence intervals quickly increase in width a few points away from the observations. Comparing no variance in observation to variance the points close to the observation points in no observation error is of course more accurate, but further away i.e. at point 20 the increased variance seem to have little impact on the confidence band. The real process behind, keeps within 90\% although we would expect more of them to stray of, as we have 47 points. 
+
+
+## Problem 1e
+We now simulate 100 realisation's with the same parameters as in 1d) and calculate empirical mean and empirical 90\% confidence bands. 
+```{r fig1e1, fig.height=4, fig.width=7, fig.cap="\\label{fig:fig1e1} Posterior estimation 100 realisation, matern $\\sigma^2 = 5$, $\\nu = 3$", fig.align="center" }
+generate_plot2 <- function(title, sigma_e_2){
+  mu.d = rep(0, length(dd))
+  mu.r = rep(0, length(xx))
+  sigma.rr= cov.matr(xx,xx, sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+  
+  sigma.dd = cov.matr(dd, dd,  sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun) + observation_error(dd, sigma_e_2)
+  sigma.rd = cov.matr(xx, dd, sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+  sigma.dr = t(sigma.rd)
+  sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
+  mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
+  
+  # 90 percent confidence:
+  c = qnorm(p = 0.95)
+  variances = diag(sigma.r.d) 
+  variances[variances < 1e-12] = 0
+  min.90 = mu.r.d. - c*sqrt(variances)
+  max.90 = mu.r.d. + c*sqrt(variances)
+  
+  min.90 <- as.vector(min.90)
+  max.90 <- as.vector(max.90)
+  set.seed(1234)
+  draw <- MASS::mvrnorm(n = 100, mu = mu.r.d., Sigma = sigma.r.d)
+  draw <- t(draw)
+  observations <- cbind(xx, draw)
+  observations <- Reduce(rbind, lapply(2:ncol(observations), function(col) cbind(observations[,c(1, col)], col)))
+  observations <- as.data.frame(observations)
+  colnames(observations) <- c("x", "observed_value", "trial")
+  observations$trial <- as.factor(observations$trial)
+  
+  # Calculate empirical bands
+  observations <- observations %>% group_by(x) %>% summarize(emp_mu = mean(observed_value), emp.min_90 = quantile(observed_value, probs = c(0.05)), emp.max_90 = quantile(observed_value, probs = c(0.95)))
+  
+  # Add theoretical 090% bands. 
+  observations$min.90 <- min.90
+  observations$max.90 <- max.90 
+  observations$mu.r.d. <- mu.r.d. 
+  
+  # Create plot
+  p <- ggplot(data = observations) +
+    
+    # Empiricla values
+    geom_line(aes(x = x, y = emp_mu)) +
+    #geom_line(aes(x = x, y = emp.min_90), linetype = "dashed") + 
+    #geom_line(aes(x = x, y =emp.max_90), linetype = "dashed") +
+    geom_ribbon(aes(x = x, ymin = emp.min_90, ymax = emp.max_90), alpha = 0.5, fill = "green") + 
+    #geom_point(aes(x = x, y = emp_mu), fill = "green") +
+    #geom_point(aes(x = x, y = emp.min_90), alpha = 0.5) +
+    #geom_point(aes(x = x, y = emp.max_90), alpha = 0.5) +
+    
+    # Theoretical values
+    geom_line(aes(x = xx, y = mu.r.d.)) +
+    #geom_line(aes(x = xx, y = min.90), linetype = "dashed") + 
+    #geom_line(aes(x = xx, y =max.90), linetype = "dashed") +
+    geom_ribbon(aes(x = xx, ymin = min.90, ymax = max.90), alpha = 0.5, fill = "skyblue", linetype="dashed") + 
+    #geom_point(aes(x = xx, y = mu.r.d.)) +
+    #geom_point(aes(x = xx, y = min.90), alpha = 0.5) +
+    #geom_point(aes(x = xx, y = max.90), alpha = 0.5) +
+    
+    # Actual realisation:
+    geom_line(aes(x = xx, y = matern_dat[,2]), color = "red") +# The actual realisation +
+    
+    theme_classic() + 
+    geom_vline(xintercept = dd, linetype = "dotted", alpha = 0.25) + 
+    xlab("x") +
+    ylab("r|d") +
+    ggtitle(title)
+  #p
+  list(p=p, draw = draw, mu.r.d.= mu.r.d.)
+}
+p1 <- generate_plot2("a) 100 realizations, emprical estimation. No observation error", 0)$p
+p2 <- generate_plot2("b) 100 realizations, emprical estimation. With observation error", 0.25)$p
+ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1)
+
+```
+
+The results are illustrated in Figure \ref{fig1e1}. We also include the theoretical plots that the simulations are drawn from. For both with observation error and without observations error the empirical estimations seems to do well, although the mean has a tendency to stray away from the theoretical at points far away (naturally due to the higher variance). The confidence intervals is also less smooth, and seems to vary more.
+
+
+
+# Problem 1f
+
+Want to evaluate 
+
+\begin{equation}
+    A_r = \int_D I(r(x) > 2)dx
+\end{equation}
+
+```{r fig1f1, fig.height=4, fig.width=7, fig.cap="\\label{fig:fig1f1} Posterior estimation 100 realisation, matern $\\sigma^2 = 5$, $\\nu = 3$", fig.align="center" }
+draw <- generate_plot2("", 0)$draw
+est_int <- apply(draw, 2, function(x) length(x[x>2]))
+est_int
+mean(est_int)
+var(est_int)
+
+mu.d = rep(0, length(dd))
+mu.r = rep(0, length(xx))
+sigma.rr= cov.matr(xx,xx,  sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+
+sigma.dd = cov.matr(dd, dd, sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+sigma.rd = cov.matr(xx, dd,  sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+sigma.dr = t(sigma.rd)
+sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
+mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
+
+# 90 percent confidence:
+c = qnorm(p = 0.95)
+variances = diag(sigma.r.d) 
+variances[variances < 1e-12] = 0
+min.90 = mu.r.d. - c*sqrt(variances)
+max.90 = mu.r.d. + c*sqrt(variances)
+
+min.90 <- as.vector(min.90)
+max.90 <- as.vector(max.90)
+
+plot.height <- 10 
+plot.min <- -5
+mu <- mu.r.d.
+variances <- diag(sigma.r.d)
+deviatons <- sqrt(variances)
+deviatons[is.nan(deviatons)] <- 0 
+probs <- pnorm(2, mean = mu, sd = deviatons, lower.tail = F) # TODO: Sqrt here or not?
+probs <- probs * plot.height + plot.min
+
+# Look at each x
+library(dplyr)
+
+observations <- cbind(1:50, draw)
+observations <- lapply(1:100, function(i) cbind(observations[,1], observations[,i+1], i))
+observations <- Reduce(rbind, observations)
+observations <- as.data.frame(observations)
+observations$over_2 <- observations$V2>2
+grouped_over_2 <- observations %>% group_by(V1) %>% summarise(perc_over_2 = mean(over_2))
+
+
+min.90.2 <- min.90
+min.90.2[min.90.2 < 2] <- 2
+
+max.90.2 <- max.90
+max.90.2[max.90.2 < 2] <- 2
+
+min.90.3 <- min.90
+min.90.3[min.90.3 > 2] <- 2
+
+max.90.3 <- max.90
+max.90.3[max.90.3 > 2] <- 2
+
+#### Plotting:
+p <- ggplot() + ylim(c(-5,5)) + geom_line(aes(x = xx, y = mu.r.d.)) +
+    geom_ribbon(aes(x = xx, ymin = min.90.2, ymax = max.90.2), alpha = 0.5, fill = "green") +
+    geom_ribbon(aes(x = xx, ymin = min.90.3, ymax = max.90.3), alpha = 0.5, fill = "skyblue") +
+    geom_vline(xintercept = dd, linetype = "dotted", alpha = 0.25) +
+    geom_hline(yintercept = 2, linetype = "dotted", alpha = 1) +
+  geom_line(aes(x = grouped_over_2$V1, y = grouped_over_2$perc_over_2*plot.height + plot.min), colour = "blue")+
+  geom_line(aes(x = xx, y =probs), colour = "black")+
+
+  theme_classic()
+   p <- p + scale_y_continuous(sec.axis = sec_axis(~(.+5)*(1/plot.height), name = TeX("$P(r(x|d) > 2)$")))
+
+p
+```
+
+The situation is illustrated in Figure \ref{fig:fig1f1}
+
+
+A prediction of $\hat A_r$ using our 100 realizations from the posterior model with $\sigma_\epsilon^2$:
+\begin{equation}
+    \hat A_r = \frac{1}{100}\sum_{i=1}^{100}\sum_{x\in L}I(r_i(x)>2)
+\end{equation}
+Where we use the approximation:
+\begin{equation}
+    A_r = \int_D I(r(x) > 2)dx \approx \sum_{x \in L}I(r(x)>2) dx 
+\end{equation}
+Another estimation is: 
+\begin{equation}
+    \tilde A_r = \sum_{x \in L} I(\hat r(x) > 2)
+\end{equation}
+
+If we let:
+\begin{equation}
+    g(r(x)) = \int_D I(r(x) > 2) dx
+\end{equation}
+Then $g(x)$ is convex as it is an integral of a positive value. 
+
+Using Jensen's Inequality we thus get: 
+\begin{equation}
+ Eg(r(x)) \geq g(Er(x)) = \int_D I(Er(x) > 2) =\int_D I(\hat r(x) > 2)
+\end{equation}
+The same would be the case for the discretized stimators, i.e. we have:
+$$E\hat A_r \geq \tilde A_r$$
+And is why we expect $\hat A_r > \tilde A_r$. Which is also what we observed. 
+
+Another way to look at the problem is the following:
+
+Let $Y_{ij}$ be that event that the j-th observation at the i-th measurement point ($0 \leq i \leq 50$) is over or under 2 in the posterior model. We define:
+\begin{equation}
+    \begin{split}
+        & Y_{ij} := I(r(X_{ij})> 2)
+    \end{split}
+\end{equation}
+Where $X_{ij}$ is the j-th observation positionat the i-th realisation of the posterior. As the 100 posterior realisations are identically distributed  and independent. Each $Y_{ij}$ is independent grouped for position j.  Then $Y_{ij}$ is Bernoulli distributed. With probability $p_{i}$ of being higher than 2. Where:
+
+\begin{equation}
+    p_i = 1 - \Phi\left(\frac{2 -  \mu_i}{\sigma_i}\right)
+\end{equation}
+Where $\mu_i = \left[\vect \mu_{l|d}\right]_i$ and $\sigma_i^2 = \left[\matr \Sigma_{l|d}\right]_{ii}$
+
+We know that $\hat p_i = 1/100\sum_{i=1}^{100}Y_{ij}$ is an unbiased estimator for $p_i$
+
+The theoretical and estimated values of $p_i$ are illustrated in Figure \ref{referenceHere}, and seem to match the situation and each other quite well. They are scaled such that the height of the plot (-5, 5) would be $p_i = 1$ 
+
+This thinking can also be applied to estimating $A_r$
+
+One alternative $\hat A_r$ is: 
+\begin{equation}
+    \begin{split}
+        \hat A_r =  \frac{1}{100}\sum_i^{50}w\sum_j^{100}I(X_{ij} > 2)  
+    \end{split}
+\end{equation}
+We note that:
+\begin{equation}
+    \begin{split}
+        E\hat A_r &=  \frac{1}{100}\sum_i^{50}w\sum_j^{100}EI(X_{ij} > 2) \\ &=   \frac{1}{100}\sum_{i=1}^{50}w\sum_{j=1}^{100}\left[1 - \Phi\left(\frac{2 -  \mu_i}{\sigma_i}\right)\right] \\
+        &= \sum_i^{50}wp_i
+    \end{split}
+\end{equation}
+Whre $w$ is the width between each observation, in our case $w=1$. We see that when number of observations goes to infinity, the above sum goes toward the integral we want to estimate. 
+
+This can also be used to show that we expect $\hat A > \tilde A$. By using that:
+\begin{equation}
+    P(\hat r(x_i) > 2) = 1 - \Phi\left(\frac{2-\mu_i}{\sigma_i}\sqrt{n}\right) < 1 - \Phi\left(\frac{2-\mu_i}{\sigma_i}\right)
+\end{equation}
+The inequality can be easily proven by using this. 
+
+
+
+\newpage
 # Problem 2 Gaussian RF - real data
 Given the domain $D = [(0,315) \times (0,315)] \subset \mathbb{R^2}$. We let $\vect{d}= r(\vect{x_1^0)}, ..., r(\vect{x_{52}^0)})^T$. 
 
@@ -303,4 +931,191 @@ r\{\vect{x_{new}}\} &= E(r\{\vect{x_0}\}) + \phi(0.90) \sqrt{Var(r\{\vect{x_0}\}
 
 We obatained `r ans2`m to be that elevation that satifies the preamble.
 
+
+
+
+# Problem 3
+
+We consider the stationary Gaussian RF $\lbrace r((\vect x); \vect x \in D \subset \mathbb{R}^2$. With $ D: \left[(1,30) \times (1,30) \right]$. 
+
+With: 
+\begin{equation}
+    \begin{split}
+        E\lbrace r(\vect x) \rbrace &= \mu_r = 0 \\
+        \Var\lbrace r(\vect x) \rbrace &= \sigma_r^2 \\
+        Corr\lbrace r(\vect x), r(\vect x')\rbrace \\
+        &= \exp\lbrace -\frac{\tau}{\xi_r}\rbrace
+    \end{split}
+\end{equation}
+with $\tau = |\vect x - \vect x'|$
+\subsection*{Problem 3a}
+Discretize the random field with  $L:\left[(1,30) \times (1,30)\right] \in D$ with parameters $\sigma_r^2$ and $\xi_r = 3$
+\subsection*{Problem 3b}
+The theoretical variogram function can be written as: 
+\begin{equation}
+    \gamma_r(\tau) =  \sigma_r^2(1-\rho_r(\tau))
+\end{equation}
+
+
+```{r}
+
+library(ggplot2)
+library(reshape2)
+library(latex2exp)
+library(geoR)
+library(foreach)
+library(tidyr)
+library(ggpubr)
+library(dplyr)
+library(fields)
+library(RandomFields)
+library(akima)
+# Problem 3
+sigma2 <- 2
+xi <- 3
+
+# Craeting grid
+obs.points <- expand.grid(x = 1:30, y =1:30)
+obs.points <- as.matrix(obs.points)
+dist <- function(x, y){
+  sqrt(sum((x-y)^2))
+}
+
+# Cov function
+cov <- function(x,y, xi, sigma2){
+  tau <- dist(x, y)
+  sigma2 * exp(-tau/xi)
+}
+
+
+# Create covariance matrix
+create_covariance_matrix <- function(X, Y, xi, sigma2){
+  res <- matrix(NA, nrow=nrow(X), ncol = nrow(Y))
+  for(i in 1:nrow(X)){
+    for(j in 1:nrow(Y)){
+      res[i, j] = cov(X[i,], Y[j,], xi, sigma2)
+    }
+  }
+  res
+}
+
+# Create covariance matrinx, and ,u
+Sigma <- create_covariance_matrix(obs.points, obs.points, sigma2 = sigma2, xi = xi)
+mu <- rep(0, nrow(obs.points))
+
+# Problem 3a)
+# Set seed and draw
+set.seed(1)
+par(mfrow=c(3,2))
+
+draw1 <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
+draw.data1 <- interp(obs.points[,1], obs.points[,2], draw1)
+fields::image.plot(draw.data1, main = "a) Realization of discretized RF", xlab = "x", ylab = "y")
+
+fields::image.plot(draw.data1, main = "Realization of discretized RF a) with contours", xlab = "x", ylab = "y")
+contour(draw.data1,add=T)
+
+
+draw2 <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
+draw.data2 <- interp(obs.points[,1], obs.points[,2], draw2)
+fields::image.plot(draw.data2, main = "b) Realization of discretized RF", xlab = "x", ylab = "y")
+
+fields::image.plot(draw.data2, main = "Realization of discretized RF b) with contours", xlab = "x", ylab = "y")
+contour(draw.data2,add=T)
+
+draw3 <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
+draw.data3 <- interp(obs.points[,1], obs.points[,2], draw3)
+fields::image.plot(draw.data3, main = "b) Realization of discretized RF", xlab = "x", ylab = "y")
+
+fields::image.plot(draw.data3, main = "Realization of discretized RF b) with contours", xlab = "x", ylab = "y")
+contour(draw.data3,add=T)
+
+# Problem 3b)
+# Finding empirical variogram
+library(geoR)
+library(ggplot2)
+par(mfrow=c(1,1))
+M1 <- as.matrix(cbind(obs.points[,1], obs.points[,2], draw1))
+geo1 <- as.geodata(M1)
+variogram1 <- variog(geo1)
+p <- ggplot() + geom_point(aes(x=variogram1$u, y = variogram1$v), colour = "Blue") +
+  geom_line(aes(x=variogram1$u, y = variogram1$v), colour = "Blue")
+
+M2 <- as.matrix(cbind(obs.points[,1], obs.points[,2], draw2))
+geo2 <- as.geodata(M2)
+variogram2 <- variog(geo2)
+p <- p + geom_point(aes(x=variogram2$u, y = variogram2$v), colour = "Red")  +
+  geom_line(aes(x=variogram2$u, y = variogram2$v), colour = "Red")
+
+
+M3 <- as.matrix(cbind(obs.points[,1], obs.points[,2], draw3))
+geo3 <- as.geodata(M3)
+variogram3 <- variog(geo3)
+p <- p + geom_point(aes(x=variogram3$u, y = variogram3$v), colour = "Green") +
+  geom_line(aes(x=variogram3$u, y = variogram3$v), colour = "Green")
+
+
+# Finding theoretical variogram
+xx <- seq(0, 40, by = 0.1)
+yy <- sapply(xx, function(x) (sigma2 - cov(x, 0, xi = xi, sigma2 = 1)))
+p <- p + geom_line(aes(x = xx, y = yy))
+p <- p + ggtitle("Variograms, theoretical and empirical") + xlab("Distance") + ylab(TeX("$\\gamma_r$"))
+p
+
+# Problem 3d)
+set.seed(12345)
+n = 36
+xr <- runif(n)*30
+yr <- runif(n)*30
+obs <- cbind(xr, yr)
+mu <- rep(0, n)
+Sigma <- create_covariance_matrix(obs, obs, xi = xi, sigma2 = sigma2)
+draw <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
+draw.data <- cbind(obs[,1], obs[,2], draw)
+geo <- as.geodata(draw.data)
+variogram1 <- variog(geo)
+p <- ggplot() + geom_point(aes(x=variogram1$u, y = variogram1$v), colour = "Blue") +
+  geom_line(aes(x=variogram1$u, y = variogram1$v), colour = "Blue") + ggtitle("Variogram, theoretical and empirical. n=36") + xlab("Distance") + ylab(TeX("$\\gamma_r$"))
+p <- p + geom_line(aes(x = xx, y = yy))
+p
+
+# Problem 3d)
+l.fit <- function(n, p = ggplot(), colour = "Black"){
+  set.seed(12345)
+  xr <- runif(n)*30
+  yr <- runif(n)*30
+  obs <- cbind(xr, yr)
+  mu <- rep(0, n)
+  Sigma <- create_covariance_matrix(obs, obs, xi = xi, sigma2 = sigma2)
+  draw <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
+  draw.data <- cbind(obs[,1], obs[,2], draw)
+  geo <- as.geodata(draw.data)
+  # Now estiamte xi and sigma
+  mod <- likfit(geo, cov.model = "exponential", ini.cov.pars = c(1,1))
+  xi <- mod$phi 
+  sigma2 <- mod$sigmasq
+  yy <- sapply(xx, function(x) (sigma2 - cov(x, 0, xi = xi, sigma2 = 1)))
+  
+  variogram1 <- variog(geo)
+  p <- p + geom_point(aes(x=variogram1$u, y = variogram1$v), colour = colour) +
+    geom_line(aes(x=variogram1$u, y = variogram1$v), colour = colour) +
+    geom_line(aes(x = xx, y = yy), colour = colour, linetype = "dashed") +
+    geom_line(aes(x = xx, y = yy.theoretical))
+  
+  return(list(likfit = mod, p = p))
+}
+yy.theoretical <- sapply(xx, function(x) (sigma2 - cov(x, 0, xi = xi, sigma2 = 1)))
+
+l.fit(36)$likfit
+p1 <- l.fit(36, "Blue")$p
+
+# Problem 3e)
+p2 <- l.fit(9, p, "Red")$p
+p3 <- l.fit(64, p, "Green")$p
+p4 <- l.fit(100,p, "Purple")$p
+ggarrange(p1,p2,p3,p4, nrow = 2, ncol = 2)
+
+
+
+```
 
