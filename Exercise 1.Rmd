@@ -1150,21 +1150,46 @@ likfit.36 <- l.fit(36)$likfit
 ```
 
 The summary of the **likfit** is displayed below:
-```{r echo=TRUE}
+```{r echo=TRUE, fig.cap="\\label{fig:fig3d2} 36 exact observations from $\\xi = 3$, $\\sigma^2 = 2$, maximum likelihood fit"}
 summary(likfit.36)
 ```
-We get an estimate $\hat\sigma^2 =$ `r likfit.36$sigmasq`. And estiamte $\hat \xi =$ `r likfit.36$phi`
+We from Figure \ref{fig:fig3d2} get an estimate $\hat\sigma^2 =$ `r likfit.36$sigmasq`. And estiamte $\hat \xi =$ `r likfit.36$phi`
 
 ## Problem 3e
-
+We repeat the process in 3d for $n=6$, $n=64$, $n=100$. 
 
 ```{r include=FALSE}
 # Problem 3e)
-p1 <- l.fit(36, colour = "Blue")$p
-p2 <- l.fit(9, colour = "Red")$p
-p3 <- l.fit(64, colour = "Green")$p
-p4 <- l.fit(100, colour = "Purple")$p
-ggarrange(p1,p2,p3,p4, nrow = 2, ncol = 2)
+#p1 <- l.fit(36, colour = "Blue")$p
+res2 <- l.fit(9, colour = "Red")
+res3 <- l.fit(64, colour = "Green")
+res4 <- l.fit(100, colour = "Purple")
+
+likfit.9 <- res2$likfit
+likfit.64 <- res2$likfit
+likfit.100 <- res2$likfit
+```
+
+The ML estimates of the parameters were: 
+
+| n   | $\hat \sigma^2_{ML}$            | $\hat\xi_{ML}$             |
+|-----|-----------------------|-------------------|
+| 9   | `r likfit.9$sigmasq` | `r likfit.9$phi` |
+| 36  | `r likfit.36$sigmasq` | `r likfit.36$phi` |
+| 64  | `r likfit.64$sigmasq` | `r likfit.64$phi` |
+| 100 | `r likfit.100$sigmasq` | `r likfit.100$phi` |
+
+
+We plot the empirical variograms vs theoretical, and vs the variograms from the estiamted parameters. 
+
+```{r}
+
+p2 <- res2$p 
+p3 <- res3$p
+p4 <- res4$p
+ggarrange(p2,p3,p4, nrow = 2, ncol = 2)
 
 ```
+
+
 
