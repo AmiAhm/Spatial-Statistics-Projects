@@ -936,40 +936,38 @@ We obatained `r ans2`m to be that elevation that satifies the preamble.
 
 # Problem 3
 
-We consider the stationary Gaussian RF $\lbrace r((\vect x); \vect x \in D \subset \mathbb{R}^2$. With $ D: \left[(1,30) \times (1,30) \right]$. 
+We consider the stationary Gaussian RF $\lbrace r((\vect x); \vect x \in D \subset \mathbb{R}^2$. With $D:\left[(1,30) \times (1,30) \right]$. 
 
 With: 
 \begin{equation}
     \begin{split}
         E\lbrace r(\vect x) \rbrace &= \mu_r = 0 \\
-        \Var\lbrace r(\vect x) \rbrace &= \sigma_r^2 \\
+        Var\lbrace r(\vect x) \rbrace &= \sigma_r^2 \\
         Corr\lbrace r(\vect x), r(\vect x')\rbrace \\
-        &= \exp\lbrace -\frac{\tau}{\xi_r}\rbrace
+        &= exp\lbrace -\frac{\tau}{\xi_r}\rbrace
     \end{split}
 \end{equation}
+
 with $\tau = |\vect x - \vect x'|$
-\subsection*{Problem 3a}
-Discretize the random field with  $L:\left[(1,30) \times (1,30)\right] \in D$ with parameters $\sigma_r^2$ and $\xi_r = 3$
-\subsection*{Problem 3b}
-The theoretical variogram function can be written as: 
-\begin{equation}
-    \gamma_r(\tau) =  \sigma_r^2(1-\rho_r(\tau))
-\end{equation}
+
+## Problem 3ac
+
+Discretize the random field with  $L:\left[(1,30) \times (1,30)\right] \in D$ with parameters $\sigma_r^2$ and $\xi_r = 3$. And simulate realizations. 
 
 
-```{r}
+```{r fig3a1, fig.height=10, fig.width=5, fig.cap="\\label{fig:fig3a1} Realizations of field with $\\xi = 3$, $\\sigma^2 = 2$", fig.align="center" }
 
-library(ggplot2)
-library(reshape2)
-library(latex2exp)
-library(geoR)
-library(foreach)
-library(tidyr)
-library(ggpubr)
-library(dplyr)
-library(fields)
-library(RandomFields)
-library(akima)
+# library(ggplot2)
+# library(reshape2)
+# library(latex2exp)
+# library(geoR)
+# library(foreach)
+# library(tidyr)
+# library(ggpubr)
+# library(dplyr)
+# library(fields)
+# library(RandomFields)
+# library(akima)
 # Problem 3
 sigma2 <- 2
 xi <- 3
@@ -1006,29 +1004,47 @@ mu <- rep(0, nrow(obs.points))
 # Problem 3a)
 # Set seed and draw
 set.seed(1)
-par(mfrow=c(3,2))
+par(mfrow=c(2,2))
 
 draw1 <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
 draw.data1 <- interp(obs.points[,1], obs.points[,2], draw1)
-fields::image.plot(draw.data1, main = "a) Realization of discretized RF", xlab = "x", ylab = "y")
-
-fields::image.plot(draw.data1, main = "Realization of discretized RF a) with contours", xlab = "x", ylab = "y")
+#fields::image.plot(draw.data1, main = "a) Realization of discretized RF", xlab = "x", ylab = "y")
+fields::image.plot(draw.data1, main = "a) Realization 1", xlab = "x", ylab = "y")
 contour(draw.data1,add=T)
 
 
 draw2 <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
 draw.data2 <- interp(obs.points[,1], obs.points[,2], draw2)
-fields::image.plot(draw.data2, main = "b) Realization of discretized RF", xlab = "x", ylab = "y")
-
-fields::image.plot(draw.data2, main = "Realization of discretized RF b) with contours", xlab = "x", ylab = "y")
+#fields::image.plot(draw.data2, main = "b) Realization of discretized RF", xlab = "x", ylab = "y")
+fields::image.plot(draw.data2, main = "b) Realization 2", xlab = "x", ylab = "y")
 contour(draw.data2,add=T)
 
 draw3 <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
 draw.data3 <- interp(obs.points[,1], obs.points[,2], draw3)
-fields::image.plot(draw.data3, main = "b) Realization of discretized RF", xlab = "x", ylab = "y")
-
-fields::image.plot(draw.data3, main = "Realization of discretized RF b) with contours", xlab = "x", ylab = "y")
+#fields::image.plot(draw.data3, main = "b) Realization of discretized RF", xlab = "x", ylab = "y")
+fields::image.plot(draw.data3, main = "c) Realization 3", xlab = "x", ylab = "y")
 contour(draw.data3,add=T)
+
+draw4 <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
+draw.data4 <- interp(obs.points[,1], obs.points[,2], draw4)
+#fields::image.plot(draw.data3, main = "b) Realization of discretized RF", xlab = "x", ylab = "y")
+fields::image.plot(draw.data4, main = "d) Realization 4", xlab = "x", ylab = "y")
+contour(draw.data4,add=T)
+```
+
+
+Create four realizations that are presented in Figure \ref{fig:fig3a1}
+
+## Problem 3bc
+The theoretical variogram function can be written as: 
+\begin{equation}
+    \gamma_r(\tau) =  \sigma_r^2(1-\rho_r(\tau))
+\end{equation}
+
+We plot the emprical variogram from our realisations and compare to the theoretical variogram. 
+
+
+```{r include=FALSE}
 
 # Problem 3b)
 # Finding empirical variogram
@@ -1054,13 +1070,31 @@ variogram3 <- variog(geo3)
 p <- p + geom_point(aes(x=variogram3$u, y = variogram3$v), colour = "Green") +
   geom_line(aes(x=variogram3$u, y = variogram3$v), colour = "Green")
 
+M4 <- as.matrix(cbind(obs.points[,1], obs.points[,2], draw4))
+geo4 <- as.geodata(M4)
+variogram4 <- variog(geo4)
+p <- p + geom_point(aes(x=variogram4$u, y = variogram4$v), colour = "purple") +
+  geom_line(aes(x=variogram4$u, y = variogram4$v), colour = "purple") + 
+  theme_classic()
+
 
 # Finding theoretical variogram
 xx <- seq(0, 40, by = 0.1)
 yy <- sapply(xx, function(x) (sigma2 - cov(x, 0, xi = xi, sigma2 = 1)))
 p <- p + geom_line(aes(x = xx, y = yy))
 p <- p + ggtitle("Variograms, theoretical and empirical") + xlab("Distance") + ylab(TeX("$\\gamma_r$"))
+
+```
+
+```{r fig3b1, fig.height=7, fig.width=7, fig.cap="\\label{fig:fig3b1} Empirical variogram vs. theoretical variogram of realisation in Figure \\ref{fig:fig3a1}.$\\xi = 3$, $\\sigma^2 = 2$", fig.align="center" }
 p
+```
+## Problem 3d
+
+Generate 36 point uniformly on $L$. And simulate a realisation over those 36 points. Will later take on these as exact observations. 
+
+
+```{r fig3d1, fig.height=7, fig.width=7, fig.cap="\\label{fig:fig3d1} Empirical variogram vs. theoretical variogram, of 36 simulated eact observations. $\\xi = 3$, $\\sigma^2 = 2$", fig.align="center" }
 
 # Problem 3d)
 set.seed(12345)
@@ -1078,7 +1112,13 @@ p <- ggplot() + geom_point(aes(x=variogram1$u, y = variogram1$v), colour = "Blue
   geom_line(aes(x=variogram1$u, y = variogram1$v), colour = "Blue") + ggtitle("Variogram, theoretical and empirical. n=36") + xlab("Distance") + ylab(TeX("$\\gamma_r$"))
 p <- p + geom_line(aes(x = xx, y = yy))
 p
+```
+The empirical variogram from the 36 observations are displayed in Figure \ref{fig:fig3d1}
 
+
+Now use **likfit** to estimate the parameters of our field using our 36 exact observations.
+
+```{r include=FALSE}
 # Problem 3d)
 l.fit <- function(n, p = ggplot(), colour = "Black"){
   set.seed(12345)
@@ -1106,16 +1146,25 @@ l.fit <- function(n, p = ggplot(), colour = "Black"){
 }
 yy.theoretical <- sapply(xx, function(x) (sigma2 - cov(x, 0, xi = xi, sigma2 = 1)))
 
-l.fit(36)$likfit
-p1 <- l.fit(36, "Blue")$p
+likfit.36 <- l.fit(36)$likfit
+```
 
+The summary of the **likfit** is displayed below:
+```{r echo=TRUE}
+summary(likfit.36)
+```
+We get an estimate $\hat\sigma^2 =$ `r likfit.36$sigmasq`. And estiamte $\hat \xi =$ `r likfit.36$phi`
+
+## Problem 3e
+
+
+```{r include=FALSE}
 # Problem 3e)
-p2 <- l.fit(9, p, "Red")$p
-p3 <- l.fit(64, p, "Green")$p
-p4 <- l.fit(100,p, "Purple")$p
+p1 <- l.fit(36, colour = "Blue")$p
+p2 <- l.fit(9, colour = "Red")$p
+p3 <- l.fit(64, colour = "Green")$p
+p4 <- l.fit(100, colour = "Purple")$p
 ggarrange(p1,p2,p3,p4, nrow = 2, ncol = 2)
-
-
 
 ```
 
