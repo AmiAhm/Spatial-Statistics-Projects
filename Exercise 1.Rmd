@@ -20,7 +20,7 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  cache = TRUE,
+  cache = F,
   message=FALSE,
   warning=FALSE,
   include=TRUE)
@@ -130,10 +130,10 @@ powered.exp.cov.fun <- function(tau, nu, sigma2){
 x <- seq(from = 0 ,to = 50, by = 0.001)
 # Plotting matern stuff
 y <- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[1]))
-p1 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+p1 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), size = 1)
 y <- y <- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[2]))
-p1 <- p1 + geom_line(aes(x = x, y= y, col = "blue"), data = as.data.frame(cbind(x,y)))
-p1 <- p1 + ggtitle("a) Matern correlation") + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
+p1 <- p1 + geom_line(aes(x = x, y= y, col = "blue"), data = as.data.frame(cbind(x,y)), size = 1)
+p1 <- p1 + ggtitle("a) Matern") + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
 p1 <- p1 +
   scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.matern[1])
                                              ,paste("$\\nu =$", vs.matern[2]))))) +
@@ -142,15 +142,16 @@ p1 <- p1 +
         legend.position = 'top',
         text = element_text(size=12),
         legend.title = element_blank(),
-        legend.spacing.y = unit(0, "mm"))
+        legend.spacing.y = unit(0, "mm")) +
+  xlim(0,10)
   
 
 # Plotting powered exponential
 y <- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[1]))
-p2 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+p2 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), size = 1)
 y <- y <- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[2]))
-p2 <- p2 + geom_line(aes(x = x, y= y, col = "blue"), data = as.data.frame(cbind(x,y)))
-p2 <- p2 + ggtitle(TeX("b) Powered exponential correlation")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
+p2 <- p2 + geom_line(aes(x = x, y= y, col = "blue"), data = as.data.frame(cbind(x,y)), size = 1)
+p2 <- p2 + ggtitle(TeX("b) Powered exponential")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
 p2 <- p2 +
   scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.exponential[1])
                                                 ,paste("$\\nu =$", vs.exponential[2]))))) +
@@ -159,7 +160,8 @@ p2 <- p2 +
         legend.position = 'top',
         text = element_text(size=12),
         legend.title = element_blank(),
-        legend.spacing.y = unit(0, "mm"))
+        legend.spacing.y = unit(0, "mm")) +
+  xlim(0,10)
 
 p <- ggarrange(p1, p2, ncol = 2, nrow = 1)
 annotate_figure(p, top = text_grob("Displaying correlation", size = 17))
@@ -186,13 +188,13 @@ Looking at \eqref{eq:variogram} we see that if $\sigma_r^2 = 1$ then the corrola
 
 # Matern exponential
 y <- sigma2s[1]*(1-  sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[1])))
-p3 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+p3 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), size = 1)
 y <- sigma2s[1]*(1- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[2])))
-p3 <- p3 + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+p3 <- p3 + geom_line(aes(x = x, y= y,col = "purple"), data = as.data.frame(cbind(x,y)), size = 1, , linetype = "dashed")
 y <- sigma2s[2]*(1-  sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[1])))
-p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)))
+p3 <- p3 + geom_line(aes(x = x, y= y,col = "green"), data = as.data.frame(cbind(x,y)), size = 1)
 y <- sigma2s[2]*(1-  sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[2])))
-p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), size = 1, , linetype = "dashed")
 p3 <- p3 + ggtitle(TeX("a) Matern")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma_r(\\tau)$")) +
   scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1])
                                                 ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1])
@@ -200,21 +202,24 @@ p3 <- p3 + ggtitle(TeX("a) Matern")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma
                                                 ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2])))),
                        guide = guide_legend(label.hjust = 0.1)) +
   theme_classic() +
+  xlim(0,10) +
   theme(legend.key.size = unit(1.5, 'lines'),
         legend.position = 'top',
         text = element_text(size=12),
         legend.title = element_blank(),
-        legend.spacing.y = unit(0, "mm"))
+        legend.spacing.y = unit(0, "mm")) + 
+    guides(col=guide_legend(nrow=2,byrow=TRUE)) 
+
 
 # Powered exponential
 y <- sigma2s[1]*(1-  sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[1])))
-p4 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)))
+p4 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), size = 1)
 y <- sigma2s[1]*(1- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[2])))
-p4 <- p4 + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+p4 <- p4 + geom_line(aes(x = x, y= y,col = "purple"), data = as.data.frame(cbind(x,y)), size = 1, , linetype = "dashed")
 y <- sigma2s[2]*(1-  sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[1])))
-p4 <- p4 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)))
+p4 <- p4 + geom_line(aes(x = x, y= y,col = "green"), data = as.data.frame(cbind(x,y)), size = 1)
 y <- sigma2s[2]*(1-  sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[2])))
-p4 <- p4 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), linetype = "dashed")
+p4 <- p4 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), size = 1, , linetype = "dashed")
 p4 <- p4 + ggtitle(TeX("b) Powered exponential")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma_r(\\tau)$")) +
   scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.exponential[1], ", $\\sigma^2 =$",sigma2s[1])
                                                 ,paste("$\\nu =$", vs.exponential[2], ", $\\sigma^2 =$",sigma2s[1])
@@ -226,7 +231,10 @@ p4 <- p4 + ggtitle(TeX("b) Powered exponential")) + xlab(TeX("$\\tau$")) + ylab(
         legend.position = 'top',
         text = element_text(size=12),
         legend.title = element_blank(),
-        legend.spacing.y = unit(0, "mm"))
+        legend.spacing.y = unit(0, "mm")) + 
+  xlim(0,10) + 
+  guides(col=guide_legend(nrow=2,byrow=TRUE)) 
+
 p <- ggarrange(p3, p4, ncol = 2, nrow = 1)
 annotate_figure(p, top = text_grob("Displaying variograms", size = 17))
 
@@ -305,26 +313,28 @@ n.realizations <- function(n, xx, sigma2, nu, cov.fun, tau.fun, title = "title")
     theme(legend.key.size = unit(1.5, 'lines'),
         legend.position = 'top',
         text = element_text(size=12),
-        legend.title = element_blank(),
+        #legend.title = element_blank(),
         legend.spacing.y = unit(0, "mm"))  +
-    xlab("x")  + ylab("r(x | d)")
-  pl <- pl + geom_line(data = observations, aes(x = x, y = observed_value, color = trial)) + ggtitle(TeX(paste(title, "$\\nu =$", nu, ", $\\sigma^2 =$",sigma2))) +
-     scale_color_discrete("Trial",labels = c("1", "2", "3", "4"),
-                       guide = guide_legend(label.hjust = 0.1)) + 
+    xlab("x")  + ylab("r(x)")  + 
     ylim(c(-7, 7)) + 
     xlim(c(0, 50))
+  pl <- pl + geom_line(data = observations, aes(x = x, y = observed_value, color = trial), size = 1) + ggtitle(TeX(paste(title, "$\\nu =$", nu, ", $\\sigma^2 =$",sigma2))) +
+     scale_color_discrete(labels = c("1", "2", "3", "4")
+                          ,guide = guide_legend(label.hjust = 0.1, title="Trial number: ")
+     )
   
   list(p = pl, dat = draw)
 }
 n <- 4
 p1 <- n.realizations(n, xx, sigma2 = sigma2s[1], nu = vs.matern[1], cov.fun = matern.cov.fun, tau.fun = tau.fun, title = "a) ")$p
+
 p2 <- n.realizations(n, xx, sigma2 = sigma2s[1], nu = vs.matern[2], cov.fun = matern.cov.fun, tau.fun = tau.fun, title = "b) ")$p
 p3 <- n.realizations(n, xx, sigma2 = sigma2s[2], nu = vs.matern[1], cov.fun = matern.cov.fun, tau.fun = tau.fun, title = "c) ")$p
 res <- n.realizations(n, xx, sigma2 = sigma2s[2], nu = vs.matern[2], cov.fun = matern.cov.fun, tau.fun = tau.fun, title = "d) ")
 p4 <- res$p
 matern_dat <- res$dat
-plot1 <- ggarrange(p1,p2, p3, p4, ncol = 2, nrow = 2)
-plot1 <- annotate_figure(plot1, top = text_grob("Matern realization", size = 17))
+plot1 <- ggarrange(p1,p2, p3, p4, ncol = 2, nrow = 2, common.legend=T, legend ="bottom")  + theme(legend.title = element_blank())
+plot1 <- annotate_figure(plot1, top = text_grob("Matern prior realization", size = 17))
 plot1
 
 ```
@@ -335,8 +345,8 @@ p5 <- n.realizations(n, xx, sigma2 = sigma2s[1], nu = vs.exponential[1], cov.fun
 p6 <- n.realizations(n, xx, sigma2 = sigma2s[1], nu = vs.exponential[2], cov.fun = powered.exp.cov.fun, tau.fun = tau.fun, title = "f) ")$p
 p7 <- n.realizations(n, xx, sigma2 = sigma2s[2], nu = vs.exponential[1], cov.fun = powered.exp.cov.fun, tau.fun = tau.fun, title = "g) ")$p
 p8 <- n.realizations(n, xx, sigma2 = sigma2s[2], nu = vs.exponential[2], cov.fun = powered.exp.cov.fun, tau.fun = tau.fun, title = "h) ")$p
-plot2 <- ggarrange(p5, p6, p7, p8, ncol = 2, nrow = 2)
-plot2 <- annotate_figure(plot2, top = text_grob("Powered exponential realization", size = 17))
+plot2 <- ggarrange(p5, p6, p7, p8, ncol = 2, nrow = 2,  common.legend=T, legend ="bottom")  + theme(legend.title = element_blank())
+plot2 <- annotate_figure(plot2, top = text_grob("Powered exponential prior realization", size = 17))
 plot2
 
 ```
@@ -354,12 +364,12 @@ We now want to develop a posterior model. Assume that we have observed the value
     \lbrace d(x); x \in \lbrace 10, 25, 30 \rbrace \subset L  \rbrace 
 \end{equation}
 We also assume we have an observation error $\sigma^2_\epsilon = \lbrace 0, 0.25 \rbrace$. In general we have
-\begin{equation}
+\begin{gather}
     d(x) = r(x) + \epsilon(x), \quad x \in \lbrace 10, 25, 30 \rbrace \\
    \epsilon(x) \sim N(0, \sigma_\epsilon^2), \iid \\
    r(x) \text{ and } \epsilon(x) \text{ independent} \\
    \epsilon(x) \text{ and } \epsilon(x') \text{ independent identically distributed} 
-\end{equation}
+\end{gather}
 
 As we both $\epsilon(x)$ and $r(x)$ are Gaussian, a linear product of the two would also be. 
 
@@ -459,7 +469,7 @@ Assuming we have realisations of $\vect d$ from simulated data we can study how 
   # Assume these are what is actually observed
   ddy <-observations[dd]
   
-  
+  library(tidyverse)
   generate_plot <- function(title, sigma_e_2){
     # Generate conditional paramteres
     mu.d = rep(0, length(dd))
@@ -481,23 +491,33 @@ Assuming we have realisations of $\vect d$ from simulated data we can study how 
     min.90 <- as.vector(min.90)
     max.90 <- as.vector(max.90)
     
+    colors <- c("90% theoretical confidence" = "skyblue", "Theoretical mean" = "black", "Actual path" = "red", "Prior observation" = "black")
+    observed <- c("Prior observation" = "dotted")
+
+
     p <- ggplot(data = as.data.frame(cbind(xx, mu.r.d., min.90, max.90, observations))) +
-      geom_line(aes(x = xx, y = mu.r.d.)) +
+      geom_vline(aes(xintercept = dd[1], linetype = "Prior observation"), size = 1) + 
+      geom_vline(aes(xintercept = dd[2], linetype = "Prior observation"), size = 1) + 
+      geom_vline(aes(xintercept = dd[3], linetype = "Prior observation"), size = 1) + 
+      geom_ribbon(aes(x = xx, ymin = min.90, ymax = max.90, fill = "90% theoretical confidence"), alpha = 0.5) + 
+      geom_line(aes(x = xx, y = mu.r.d., color = "Theoretical mean"), size = 1) +
       #geom_line(aes(x = xx, y = min.90), linetype = "dashed") + 
       #geom_line(aes(x = xx, y =max.90), linetype = "dashed") +
-      geom_ribbon(aes(x = xx, ymin = min.90, ymax = max.90), alpha = 0.5, fill = "skyblue") + 
-      # geom_point(aes(x = xx, y = mu.r.d.)) +
-     # geom_point(aes(x = xx, y = min.90), alpha = 0.5) +
+      #geom_point(aes(x = xx, y = mu.r.d.)) +
+      #geom_point(aes(x = xx, y = min.90), alpha = 0.5) +
       #geom_point(aes(x = xx, y = max.90), alpha = 0.5) +
       #geom_point(aes(x = xx, y = observations), alpha = 0.5, color = "red") +
-      geom_line(aes(x = xx, y = matern_dat[,2]), color = "red") +# The actual realisation
-      geom_vline(xintercept = dd) + 
+      geom_line(aes(x = xx, y = matern_dat[,2], color = "Actual path"), size = 1) +# The actual realisation
       ggtitle(title) +
+      scale_fill_manual("", values = colors) +
+      scale_color_manual("", values = colors) +
+      scale_linetype_manual("", values = observed) +
       xlab("x") +
       ylab("r|d") + 
       xlim(c(0,50)) + 
       ylim(c(-6, 6)) + 
-      theme_classic()
+      theme(legend.title = element_blank()) + 
+      theme_classic() 
       
       
     p
@@ -505,10 +525,8 @@ Assuming we have realisations of $\vect d$ from simulated data we can study how 
   p1 <- generate_plot(title = "a) Without observation error", 0)
   p2 <- generate_plot("b) With observation error", .25)
     
-  p <- ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1, common.legend=T, legend ="bottom")
-  p <- annotate_figure(p, top = text_grob("Matern. Posterior of realisation w/ 90% confidence", size = 17)) +
-     scale_color_discrete("Trial",labels = c("1", "2", "3", "4"),
-                       guide = guide_legend(label.hjust = 0.1)) 
+  p <- ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1, common.legend=T, legend ="bottom")  + theme(legend.title = element_blank())
+  p <- annotate_figure(p, top = text_grob("Matern. Posterior of realisation w/ 90% confidence", size = 17))
   p
 
 ```
@@ -560,41 +578,55 @@ generate_plot2 <- function(title, sigma_e_2){
   observations$max.90 <- max.90 
   observations$mu.r.d. <- mu.r.d. 
   
+  colors <- c("90% theoretical confidence" = "skyblue", "Theoretical mean" = "black", "Actual path" = "red", "Prior observation" = "black", "90% empirical confidence" = "green", "Empirical mean" = "blue")
+  observed <- c("Prior observation" = "dotted")
+    
   # Create plot
   p <- ggplot(data = observations) +
-    
     # Empiricla values
-    geom_line(aes(x = x, y = emp_mu)) +
     #geom_line(aes(x = x, y = emp.min_90), linetype = "dashed") + 
     #geom_line(aes(x = x, y =emp.max_90), linetype = "dashed") +
-    geom_ribbon(aes(x = x, ymin = emp.min_90, ymax = emp.max_90), alpha = 0.5, fill = "green") + 
     #geom_point(aes(x = x, y = emp_mu), fill = "green") +
     #geom_point(aes(x = x, y = emp.min_90), alpha = 0.5) +
     #geom_point(aes(x = x, y = emp.max_90), alpha = 0.5) +
-    
+    geom_vline(aes(xintercept = dd[1], linetype = "Prior observation"), size = 1) + 
+    geom_vline(aes(xintercept = dd[2], linetype = "Prior observation"), size = 1) + 
+    geom_vline(aes(xintercept = dd[3], linetype = "Prior observation"), size = 1) + 
+    geom_ribbon(aes(x = x, ymin = emp.min_90, ymax = emp.max_90, fill = "90% empirical confidence"), alpha = 0.5) + 
+    geom_ribbon(aes(x = xx, ymin = min.90, ymax = max.90, fill = "90% theoretical confidence"), alpha = 0.5) + 
     # Theoretical values
-    geom_line(aes(x = xx, y = mu.r.d.)) +
+    geom_line(aes(x = xx, y = mu.r.d., color = "Theoretical mean"), size = 1) +
+    geom_line(aes(x = xx, y = matern_dat[,2], color = "Actual path"), size = 1) +# The actual realisation +
+    geom_line(aes(x = x, y = emp_mu, color = "Empirical mean"), size = 1) +
+
     #geom_line(aes(x = xx, y = min.90), linetype = "dashed") + 
     #geom_line(aes(x = xx, y =max.90), linetype = "dashed") +
-    geom_ribbon(aes(x = xx, ymin = min.90, ymax = max.90), alpha = 0.5, fill = "skyblue", linetype="dashed") + 
     #geom_point(aes(x = xx, y = mu.r.d.)) +
     #geom_point(aes(x = xx, y = min.90), alpha = 0.5) +
     #geom_point(aes(x = xx, y = max.90), alpha = 0.5) +
-    
+     scale_fill_manual("", values = colors) +
+      scale_color_manual("", values = colors) +
+      scale_linetype_manual("", values = observed) +
     # Actual realisation:
-    geom_line(aes(x = xx, y = matern_dat[,2]), color = "red") +# The actual realisation +
     
     theme_classic() + 
     geom_vline(xintercept = dd, linetype = "dotted", alpha = 0.25) + 
     xlab("x") +
     ylab("r|d") +
-    ggtitle(title)
+    ggtitle(title) +
+    theme(legend.title = element_blank()) + 
+    theme_classic()  + 
+    guides(fill=guide_legend(nrow=2,byrow=TRUE), line=guide_legend(nrow=2,byrow=TRUE)) + 
+    ylim(-6, 6) + 
+    xlim(0, 50)
   #p
   list(p=p, draw = draw, mu.r.d.= mu.r.d.)
 }
-p1 <- generate_plot2("a) 100 realizations, emprical estimation. No observation error", 0)$p
-p2 <- generate_plot2("b) 100 realizations, emprical estimation. With observation error", 0.25)$p
-ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1)
+p1 <- generate_plot2("a) No observation error", 0)$p
+p2 <- generate_plot2("b) Observation error", 0.25)$p
+p <- ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1, common.legend=T, legend ="bottom")  + theme(legend.title = element_blank())
+p <- annotate_figure(p, top = text_grob("Empirical estimation w/ 100 realizations", size = 17))
+p
 
 ```
 
@@ -613,7 +645,6 @@ Want to evaluate
 ```{r fig1f1, fig.height=4, fig.width=7, fig.cap="\\label{fig:fig1f1} Posterior estimation 100 realisation, matern $\\sigma^2 = 5$, $\\nu = 3$", fig.align="center" }
 draw <- generate_plot2("", 0)$draw
 est_int <- apply(draw, 2, function(x) length(x[x>2]))
-est_int
 mean(est_int)
 var(est_int)
 
@@ -669,17 +700,31 @@ min.90.3[min.90.3 > 2] <- 2
 max.90.3 <- max.90
 max.90.3[max.90.3 > 2] <- 2
 
+colors <- c("90% theoretical confidence > 2" = "green", "90% theoretical confidence < 2" = "skyblue", "Actual path" = "red", "Prior observation" = "black", "Theoretical P(I(r(x)>2)" = "red", "Empirical P(I(r(x)>2)" = "blue", "Posterior, theoretical mean" = "black")
+observed <- c("Prior observation" = "dotted", "y=2" = "solid")
 #### Plotting:
-p <- ggplot() + ylim(c(-5,5)) + geom_line(aes(x = xx, y = mu.r.d.)) +
-    geom_ribbon(aes(x = xx, ymin = min.90.2, ymax = max.90.2), alpha = 0.5, fill = "green") +
-    geom_ribbon(aes(x = xx, ymin = min.90.3, ymax = max.90.3), alpha = 0.5, fill = "skyblue") +
-    geom_vline(xintercept = dd, linetype = "dotted", alpha = 0.25) +
-    geom_hline(yintercept = 2, linetype = "dotted", alpha = 1) +
-  geom_line(aes(x = grouped_over_2$V1, y = grouped_over_2$perc_over_2*plot.height + plot.min), colour = "blue")+
-  geom_line(aes(x = xx, y =probs), colour = "black")+
+p <- ggplot() + 
+  ylim(c(-5,5)) +
+  geom_line(aes(x = xx, y = mu.r.d., colour = "Posterior, theoretical mean"), size = 1) +
+  geom_ribbon(aes(x = xx, ymin = min.90.2, ymax = max.90.2, fill = "90% theoretical confidence > 2"), alpha = 0.5) +
+  geom_ribbon(aes(x = xx, ymin = min.90.3, ymax = max.90.3, fill = "90% theoretical confidence < 2"), alpha = 0.5) +
+  geom_vline(aes(xintercept = dd[1], linetype = "Prior observation"), size = 1) + 
+  geom_vline(aes(xintercept = dd[2], linetype = "Prior observation"), size = 1) + 
+  geom_vline(aes(xintercept = dd[3], linetype = "Prior observation"), size = 1) + 
+  geom_hline(aes(yintercept = 2, linetype = "y=2")) +
+  geom_line(aes(x = grouped_over_2$V1, y = grouped_over_2$perc_over_2*plot.height + plot.min, colour = "Empirical P(I(r(x)>2)"), size = 1)+
+  geom_line(aes(x = xx, y =probs, colour = "Theoretical P(I(r(x)>2)"), size = 1)+
+  xlim(0, 50) +
+  theme_classic() + 
+  xlab("x") + 
+  ylab("r|d") + 
+  scale_fill_manual("", values = colors) +
+  scale_color_manual("", values = colors) +
+  scale_linetype_manual("", values = observed) +
+  ggtitle(TeX("Posterior with $I(r(x)>2)$")) + 
+  theme(legend.title = element_blank()) 
 
-  theme_classic()
-   p <- p + scale_y_continuous(sec.axis = sec_axis(~(.+5)*(1/plot.height), name = TeX("$P(r(x|d) > 2)$")))
+p <- p + scale_y_continuous(sec.axis = sec_axis(~(.+5)*(1/plot.height), name = TeX("$P(r(x|d) > 2)$")))
 
 p
 ```
@@ -879,8 +924,7 @@ $$
 E \{r(\vect{x}) \} = \beta_1 + \beta_2x_v + \beta_3x_h + \beta_4x_vx_h + \beta_5x_v^2 + \beta_6x_h^2 .
 $$
 
-We present the predictions and the associated variance in the figure below:
-```{r fig4, echo=FALSE, fig.asp=1, fig.cap="\\label{fig:fig4}, fig.height=0.5"}
+```{r fig4, echo=FALSE, fig.asp=1, fig.cap="\\label{fig:fig4} Predictions and associated variance, fig.height=0.5"}
 
 kripar1 <- krige.control(type.krige = "OK", cov.model = "powered.exponential", trend.d="2nd",trend.l="2nd" ,cov.pars = c(2500,100), kappa = 1.5)
 pred1 <- krige.conv(geodata, coords = s, data=geodata$data, locations = sp, krige = kripar1)
@@ -906,7 +950,7 @@ gg2 <- ggplot(dd1, aes(x=x, y=y, col= elev))+
 
 ggarrange(gg1,gg2, ncol=2, widths = c(1,1), heights = c(1,1))
 ```
-
+We present the predictions and the associated variance in Figure \ref{fig:fig4}
 
 ## Problem 2e
 
@@ -946,6 +990,7 @@ We obatained `r ans2`m to be that elevation that satifies the preamble.
 
 
 
+\newpage 
 
 # Problem 3
 
@@ -968,7 +1013,7 @@ with $\tau = |\vect x - \vect x'|$
 Discretize the random field with  $L:\left[(1,30) \times (1,30)\right] \in D$ with parameters $\sigma_r^2$ and $\xi_r = 3$. And simulate realizations. 
 
 
-```{r fig3a1, fig.height=14, fig.width=7, fig.cap="\\label{fig:fig3a1} Realizations of field with $\\xi = 3$, $\\sigma^2 = 2$", fig.align="center" }
+```{r fig3a1, fig.height=12, fig.width=12, fig.cap="\\label{fig:fig3a1} Realizations of field with $\\xi = 3$, $\\sigma^2 = 2$", fig.align="center" }
 
 # library(ggplot2)
 # library(reshape2)
@@ -1064,37 +1109,41 @@ We plot the emprical variogram from our realisations and compare to the theoreti
 library(geoR)
 library(ggplot2)
 par(mfrow=c(1,1))
+
+colors <- c("Realization 1" = "Blue", "Realization 2" = "Red", "Realization 3" = "Green", "Realization 4" = "Purple", "Actual variogram" = "black")
 M1 <- as.matrix(cbind(obs.points[,1], obs.points[,2], draw1))
 geo1 <- as.geodata(M1)
 variogram1 <- variog(geo1)
-p <- ggplot() + geom_point(aes(x=variogram1$u, y = variogram1$v), colour = "Blue") +
-  geom_line(aes(x=variogram1$u, y = variogram1$v), colour = "Blue")
+p <- ggplot() + geom_point(aes(x=variogram1$u, y = variogram1$v, colour = "Realization 1"), size = 1) +
+  geom_line(aes(x=variogram1$u, y = variogram1$v, colour = "Realization 1"), size = 1)
 
 M2 <- as.matrix(cbind(obs.points[,1], obs.points[,2], draw2))
 geo2 <- as.geodata(M2)
 variogram2 <- variog(geo2)
-p <- p + geom_point(aes(x=variogram2$u, y = variogram2$v), colour = "Red")  +
-  geom_line(aes(x=variogram2$u, y = variogram2$v), colour = "Red")
+p <- p + geom_point(aes(x=variogram2$u, y = variogram2$v, colour = "Realization 2"), size = 1)  +
+  geom_line(aes(x=variogram2$u, y = variogram2$v, colour = "Realization 2"), size = 1)
 
 
 M3 <- as.matrix(cbind(obs.points[,1], obs.points[,2], draw3))
 geo3 <- as.geodata(M3)
 variogram3 <- variog(geo3)
-p <- p + geom_point(aes(x=variogram3$u, y = variogram3$v), colour = "Green") +
-  geom_line(aes(x=variogram3$u, y = variogram3$v), colour = "Green")
+p <- p + geom_point(aes(x=variogram3$u, y = variogram3$v, colour = "Realization 3"), size = 1) +
+  geom_line(aes(x=variogram3$u, y = variogram3$v, colour = "Realization 3"), size = 1)
 
 M4 <- as.matrix(cbind(obs.points[,1], obs.points[,2], draw4))
 geo4 <- as.geodata(M4)
 variogram4 <- variog(geo4)
-p <- p + geom_point(aes(x=variogram4$u, y = variogram4$v), colour = "purple") +
-  geom_line(aes(x=variogram4$u, y = variogram4$v), colour = "purple") + 
+p <- p + geom_point(aes(x=variogram4$u, y = variogram4$v, colour = "Realization 4"), size = 1) +
+  geom_line(aes(x=variogram4$u, y = variogram4$v, colour = "Realization 4"), suze = 1) + 
   theme_classic()
 
+p <- p +  scale_fill_manual("", values = colors) +
+    scale_color_manual("", values = colors)
 
 # Finding theoretical variogram
 xx <- seq(0, 40, by = 0.1)
 yy <- sapply(xx, function(x) (sigma2 - cov(x, 0, xi = xi, sigma2 = 1)))
-p <- p + geom_line(aes(x = xx, y = yy))
+p <- p + geom_line(aes(x = xx, y = yy, colour = "Actual variogram"), size = 1)
 p <- p + ggtitle("Variograms, theoretical and empirical") + xlab("Distance") + ylab(TeX("$\\gamma_r$"))
 
 ```
@@ -1106,34 +1155,12 @@ p
 
 Generate 36 point uniformly on $L$. And simulate a realisation over those 36 points. Will later take on these as exact observations. 
 
-
-```{r fig3d1, fig.height=7, fig.width=7, fig.cap="\\label{fig:fig3d1} Empirical variogram vs. theoretical variogram, of 36 simulated eact observations. $\\xi = 3$, $\\sigma^2 = 2$", fig.align="center" }
-
-# Problem 3d)
-set.seed(12345)
-n = 36
-xr <- runif(n)*30
-yr <- runif(n)*30
-obs <- cbind(xr, yr)
-mu <- rep(0, n)
-Sigma <- create_covariance_matrix(obs, obs, xi = xi, sigma2 = sigma2)
-draw <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
-draw.data <- cbind(obs[,1], obs[,2], draw)
-geo <- as.geodata(draw.data)
-variogram1 <- variog(geo)
-p <- ggplot() + geom_point(aes(x=variogram1$u, y = variogram1$v), colour = "Blue") +
-  geom_line(aes(x=variogram1$u, y = variogram1$v), colour = "Blue") + ggtitle("Variogram, theoretical and empirical. n=36") + xlab("Distance") + ylab(TeX("$\\gamma_r$"))
-p <- p + geom_line(aes(x = xx, y = yy))
-p
-```
-The empirical variogram from the 36 observations are displayed in Figure \ref{fig:fig3d1}
-
-
-Now use **likfit** to estimate the parameters of our field using our 36 exact observations.
-
 ```{r include=FALSE}
 # Problem 3d)
-l.fit <- function(n, p = ggplot(), colour = "Black"){
+l.fit <- function(n, colour = "Black", title = ""){
+colors <- c("Empirical variogram" = colour, "Theoretical variogram w/ estimated parameters" = colour, "Actual theoretical variogram" = "black")
+observed <- c("Theoretical variogram w/ estimated parameters" = "dashed")
+
   set.seed(12345)
   xr <- runif(n)*30
   yr <- runif(n)*30
@@ -1150,33 +1177,50 @@ l.fit <- function(n, p = ggplot(), colour = "Black"){
   yy <- sapply(xx, function(x) (sigma2 - cov(x, 0, xi = xi, sigma2 = 1)))
   
   variogram1 <- variog(geo)
-  p <- p + geom_point(aes(x=variogram1$u, y = variogram1$v), colour = colour) +
-    geom_line(aes(x=variogram1$u, y = variogram1$v), colour = colour) +
-    geom_line(aes(x = xx, y = yy), colour = colour, linetype = "dashed") +
-    geom_line(aes(x = xx, y = yy.theoretical))
-  
+  p <- ggplot() + 
+    geom_line(aes(x = xx, y = yy.theoretical, colour = "Actual theoretical variogram")) + 
+    geom_point(aes(x=variogram1$u, y = variogram1$v, colour = "Empirical variogram")) +
+    geom_line(aes(x=variogram1$u, y = variogram1$v, colour = "Empirical variogram")) +
+    geom_line(aes(x = xx, y = yy, linetype = "Theoretical variogram w/ estimated parameters")) +
+    ggtitle(paste(title, " ", n, "observations")) +
+    theme_classic() + 
+    xlab(TeX("$\\tau$")) + 
+    ylab(TeX("$\\gamma_r(\\tau)$")) + 
+    scale_fill_manual("", values = colors) +
+    scale_color_manual("", values = colors) +
+    scale_linetype_manual("", values = observed) +
+    ylim(0, 7) +
+    guides(col=guide_legend(nrow=3,byrow=TRUE)) 
+    
   return(list(likfit = mod, p = p))
 }
 yy.theoretical <- sapply(xx, function(x) (sigma2 - cov(x, 0, xi = xi, sigma2 = 1)))
 
-likfit.36 <- l.fit(36)$likfit
+res <- l.fit(36,  colour = "Red", title = "b)")
+likfit.36 <- res$likfit
 ```
 
-The summary of the **likfit** is displayed below:
+The empirical variogram from the 36 observations are displayed in Figure \ref{fig:fig3d1}
+
+
+Now use **likfit** to estimate the parameters of our field using our 36 exact observations.
+
+
+
+The summary of the **likfit** is displayed inbelow:
 ```{r echo=TRUE, fig.cap="\\label{fig:fig3d2} 36 exact observations from $\\xi = 3$, $\\sigma^2 = 2$, maximum likelihood fit"}
 summary(likfit.36)
 ```
-We from Figure \ref{fig:fig3d2} get an estimate $\hat\sigma^2 =$ `r likfit.36$sigmasq`. And estiamte $\hat \xi =$ `r likfit.36$phi`
+We thus can conclude that using ML one will get an estimate $\hat\sigma^2 =$ `r likfit.36$sigmasq`. And estiamte $\hat \xi =$ `r likfit.36$phi` on the realization. Which is not too far off from the original values.
 
 ## Problem 3e
 We repeat the process in 3d for $n=6$, $n=64$, $n=100$. 
 
 ```{r include=FALSE}
 # Problem 3e)
-#p1 <- l.fit(36, colour = "Blue")$p
-res2 <- l.fit(9, colour = "Red")
-res3 <- l.fit(64, colour = "Green")
-res4 <- l.fit(100, colour = "Purple")
+res2 <- l.fit(9, colour = "Red", title = "a)")
+res3 <- l.fit(64, colour = "Red", title = "c)")
+res4 <- l.fit(100, colour = "Red", title = "d)")
 
 likfit.9 <- res2$likfit
 likfit.64 <- res3$likfit
@@ -1185,23 +1229,26 @@ likfit.100 <- res4$likfit
 
 The ML estimates of the parameters were: 
 
-| n   | $\hat \sigma^2_{ML}$            | $\hat\xi_{ML}$             |
-|-----|-----------------------|-------------------|
-| 9   | `r likfit.9$sigmasq` | `r likfit.9$phi` |
-| 36  | `r likfit.36$sigmasq` | `r likfit.36$phi` |
-| 64  | `r likfit.64$sigmasq` | `r likfit.64$phi` |
-| 100 | `r likfit.100$sigmasq` | `r likfit.100$phi` |
-
+| n      | $\hat \sigma^2_{ML}$  | $\hat\xi_{ML}$      |
+|--------|-----------------------|-------------------  |
+| 9      | `r likfit.9$sigmasq`  |`r likfit.9$phi`     |
+| 36     | `r likfit.36$sigmasq` | `r likfit.36$phi`   |
+| 64     | `r likfit.64$sigmasq` | `r likfit.64$phi`   |
+| 100    | `r likfit.100$sigmasq`|  `r likfit.100$phi` |
+|--------|-----------------------|-------------------  | 
+| Actual | `r sigma2`            | `r xi`              | 
+ 
 
 We plot the empirical variograms vs theoretical, and vs the variograms from the estiamted parameters. 
 
 ```{r}
 
-p2 <- res2$p 
+p1 <- res2$p 
+p2 <- res$p
 p3 <- res3$p
 p4 <- res4$p
-ggarrange(p2,p3,p4, nrow = 2, ncol = 2)
-
+p <- ggarrange(p1, p2,p3,p4, nrow = 2, ncol = 2, common.legend = T, legend = "bottom")
+p
 ```
 
 
