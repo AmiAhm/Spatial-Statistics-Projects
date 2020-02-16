@@ -39,7 +39,6 @@ library(geoR)
 library(tidyr)
 library(dplyr)
 library(foreach)
-library(tidyverse)
 
 
 # Theme for ggplots
@@ -91,7 +90,7 @@ We now go on to look at the the powered exponential correlation function:
     \nu \in \left(0, 2 \right]
     \end{split}
 \end{equation}
-for later case studies we will look at parameters $\nu_r \in \lbrace 1, 1.9 \rbrace$. We note that and increased $\nu$ would lower the exponent and thus give less correlation. 
+for later case studies we will look at parameters $\nu_r \in \lbrace 1, 1.9 \rbrace$. We note that and increased $\nu$ ($\nu >> 1$) would lower the exponent and thus give less correlation. 
 
 We also want to study the Matern correlation function
 \begin{equation}
@@ -127,16 +126,26 @@ powered.exp.cov.fun <- function(tau, nu, sigma2){
 }
 
 
-x <- seq(from = 0 ,to = 50, by = 0.001)
+x <- seq(from = 0 ,to = 50, by = 0.1)
 # Plotting matern stuff
-y <- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[1]))
-p1 <- ggplot() + geom_line(aes(x = x, y= y), colour = "red", data = as.data.frame(cbind(x,y)), size = 1)
-y <- y <- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[2]))
-p1 <- p1 + geom_line(aes(x = x, y= y), colour = "blue", data = as.data.frame(cbind(x,y)), size = 1)
+y1 <- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[1]))
+df1 <- cbind(x, y1)
+y2<- sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.matern[2]))
+df2 <- cbind(x, y2)
+
+df1 <- as.data.frame(df1)
+df2 <- as.data.frame(df2)
+
+df1$v = "v = 1"
+df2$v = "v = 3"
+colnames(df1) <- c("x", "y", "v")
+colnames(df2) <- c("x", "y", "v")
+df <- rbind(df1, df2)
+df$v <- as.factor(df$v)
+
+p1 <- ggplot() + geom_line(aes(x = x, y= y, colour = v), data = df, size = 1)
 p1 <- p1 + ggtitle("a) Matern") + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
 p1 <- p1 +
-  scale_color_manual(values = c("red", "blue"),labels = unname(TeX(c(paste("$\\nu =$", vs.matern[1])
-                                             ,paste("$\\nu =$", vs.matern[2]))))) +
   theme_classic() +
   theme(legend.key.size = unit(1.5, 'lines'),
         legend.position = 'top',
@@ -147,14 +156,24 @@ p1 <- p1 +
   
 
 # Plotting powered exponential
-y <- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[1]))
-p2 <- ggplot() + geom_line(aes(x = x, y= y,col = "red"), data = as.data.frame(cbind(x,y)), size = 1)
-y <- y <- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[2]))
-p2 <- p2 + geom_line(aes(x = x, y= y, col = "blue"), data = as.data.frame(cbind(x,y)), size = 1)
+y1 <- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[1]))
+df1 <- cbind(x, y1)
+y2<- sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[2]))
+df2 <- cbind(x, y2)
+
+df1 <- as.data.frame(df1)
+df2 <- as.data.frame(df2)
+
+df1$v = "v = 1.1"
+df2$v = "v = 1.9"
+colnames(df1) <- c("x", "y", "v")
+colnames(df2) <- c("x", "y", "v")
+df <- rbind(df1, df2)
+df$v <- as.factor(df$v)
+
+p2 <- ggplot() + geom_line(aes(x = x, y= y, colour = v), data = df, size = 1)
 p2 <- p2 + ggtitle(TeX("b) Powered exponential")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\rho_r(\\tau)$"))
 p2 <- p2 +
-  scale_color_discrete("",labels = unname(TeX(c(paste("$\\nu =$", vs.exponential[1])
-                                                ,paste("$\\nu =$", vs.exponential[2]))))) +
   theme_classic() +
   theme(legend.key.size = unit(1.5, 'lines'),
         legend.position = 'top',
@@ -172,9 +191,9 @@ annotate_figure(p, top = text_grob("Displaying correlation", size = 17))
 
 The two correlation functions are plotted in Figure \ref{fig:fig1a1} for $\tau \in \mathbb{R}_\oplus$. We note that these functions both are positive definite. From the figures we also note that both correlation functions for the different parameters seems to satisfy ergodicity, correlation drops to zero the further apart to points are, this is a neccesary trait in our Gaussian RF. 
 
-For the matern corrolation we see that an decrease of $\nu$ lead to slower fall in correlation with distance. We also note that the Matern seems to drop slower in correlation than the exponential correlation function for the given parameters.
+For the matern corrolation we see that an increase of $\nu$ lead to slower fall in correlation with distance. We also note that the Matern seems to drop slower in correlation than the exponential correlation function for the given parameters.
 
-For lower values of $\nu$ and  when $\tau >> 1$ the powered exponential seems to drop faster in correlation than for higher $\nu$. The oppsite seems to be the trend when $\tau << 1$
+For higher values of $\nu$ and  when $\tau >> 1$ the powered exponential seems to drop faster in correlation than for higher $\nu$. The oppsite seems to be the trend when $\tau << 1$
 
 The variogram function is defined as:
 \begin{equation}\label{eq:variogram}
@@ -200,10 +219,10 @@ y <- sigma2s[2]*(1-  sapply(x, function(xx) matern.cov.fun(tau = xx, sigma2 = si
 p3 <- p3 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), size = 1 , linetype = "dashed")
 p3 <- p3 + ggtitle(TeX("a) Matern")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma_r(\\tau)$")) +
   scale_color_manual(values = c("red", "purple", "green", "blue"),labels = unname(TeX(c(
-                                                paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[2])
-                                                ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2])
-                                                ,paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1])
-                                                ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1])))),
+                                                paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[2])
+                                                ,paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[2])
+                                                ,paste("$\\nu =$", vs.matern[2], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.matern[1], ", $\\sigma^2 =$",sigma2s[1])))),
                        guide = guide_legend(label.hjust = 0.1)) +
   theme_classic() +
   xlim(0,10) +
@@ -225,10 +244,11 @@ p4 <- p4 + geom_line(aes(x = x, y= y,col = "green"), data = as.data.frame(cbind(
 y <- sigma2s[2]*(1-  sapply(x, function(xx) powered.exp.cov.fun(tau = xx, sigma2 = sigma2s[1], nu = vs.exponential[2])))
 p4 <- p4 + geom_line(aes(x = x, y= y,col = "blue"), data = as.data.frame(cbind(x,y)), size = 1, linetype = "dashed")
 p4 <- p4 + ggtitle(TeX("b) Powered exponential")) + xlab(TeX("$\\tau$")) + ylab(TeX("$\\gamma_r(\\tau)$")) +
-  scale_color_manual(values = c("red", "purple", "green", "blue"),labels = unname(TeX(c(paste("$\\nu =$", vs.exponential[1], ", $\\sigma^2 =$",sigma2s[2])
-                                                ,paste("$\\nu =$", vs.exponential[2], ", $\\sigma^2 =$",sigma2s[2])
-                                                ,paste("$\\nu =$", vs.exponential[1], ", $\\sigma^2 =$",sigma2s[1])
-                                                ,paste("$\\nu =$", vs.exponential[2], ", $\\sigma^2 =$",sigma2s[1])))),
+  scale_color_manual(values = c("red", "purple", "green", "blue"),labels = unname(TeX(c(
+                                                  paste("$\\nu =$", vs.exponential[2], ", $\\sigma^2 =$",sigma2s[2])
+                                                ,paste("$\\nu =$", vs.exponential[1], ", $\\sigma^2 =$",sigma2s[2])
+                                                ,paste("$\\nu =$", vs.exponential[2], ", $\\sigma^2 =$",sigma2s[1])
+                                                ,paste("$\\nu =$", vs.exponential[1], ", $\\sigma^2 =$",sigma2s[1])))),
                        guide = guide_legend(label.hjust = 0.1)) +
   theme_classic() +
   theme(legend.key.size = unit(1.5, 'lines'),
@@ -246,7 +266,7 @@ annotate_figure(p, top = text_grob("Displaying variograms", size = 17))
 
 We display the variograms for our model parameters in Figure \ref{fig:fig1a2}.
 
-In both figures we see that the value of $\sigma^2$ sets a roof on the variance of points far away. Higher values of $\sigma^2$ also seems to increase the max achieved variance. For the matern variogram increased $\nu$ seems to increase corrolation to neighbouring points. For the powered exponential an increase in $\nu$ seems to increase corroloation, but not as the same rate as with the Matern
+In both figures we see that the value of $\sigma^2$ sets a roof on the variance of points far away. Higher values of $\sigma^2$ also seems to increase the max achieved variance. For the matern variogram increased $\nu$ seems to increase corrolation to neighbouring points. 
 
 
 \newpage
@@ -356,7 +376,7 @@ plot2
 ```
 
 
-The results are plotted in Figure \ref{fig:fig1b1} and Figure \ref{fig:fig1b2}. We note that an increased variance seems to increase fluctuation (comparing c) d) g) and h) to the others). For the matern we also see that an increased $nu$ seems to make the process smoother. For both correlation functions increased $\nu$ seems to increase "air-time" when the process is strays away from expected 0. 
+The results are plotted in Figure \ref{fig:fig1b1} and Figure \ref{fig:fig1b2}. We note that an increased variance seems to increase fluctuation (comparing c) d) g) and h) to the others). For the matern we also see that an increased $\nu$ seems to make the process smoother. For both correlation functions increased $\nu$ seems to increase "air-time" when the process is strays away from expected 0. 
 
 
 \newpage
@@ -538,12 +558,12 @@ Assuming we have realisations of $\vect d$ from simulated data we can study how 
 
 We compute two corresponding predictions for the spatial variable $\lbrace \hat r(x);x \in L\rbrace$ with associated 0.9 predictions intervals and display them in Figure \ref{fig:fig1d1}. We use the same realisations Trial 1 in d) in Figure \ref{fig:fig1b1}. 
 
-Here we have parameters $\nu_r  = 3$ and  $\sigma_r^2 = 5$. As discussed earlier, we would with these values see much corrolation. From the variogram, points with distance up to about 20 in distance would impact each other, this is reflected in the figure, as the observation points shifts large parts of the process away from 0. But still, even though we have a lot of correlation, we see that the 90\% confidence intervals quickly increase in width a few points away from the observations. Comparing no variance in observation to variance the points close to the observation points in no observation error is of course more accurate, but further away i.e. at point 20 the increased variance seem to have little impact on the confidence band. The real process behind, keeps within 90\% although we would expect more of them to stray of, as we have 47 points. 
+Here we have parameters $\nu_r  = 3$ and  $\sigma_r^2 = 5$. As discussed earlier, we would with these values see much corrolation. From the variogram, points with distance up to about 20 in distance would impact each other, this is reflected in the figure, as the observation points shifts large parts of the process away from 0. The high correlation decreases the width of the 90\% confidence intervals close to the observations. In the interval $x\in (25,30)$ the 90\% band is very narrow in the exact observation case, comapred to the one with observation error. Comparing no variance in observation to variance the points close to the observation points in no observation error is of course more accurate, but further away i.e. at point 20 the increased variance seem to have little impact on the confidence band. The real process behind, keeps within 90\% although we would expect more of them to stray of, as we have 47 non observed-points.
 
 
 ## Problem 1e
 We now simulate 100 realisation's with the same parameters as in 1d) and calculate empirical mean and empirical 90\% confidence bands. 
-```{r fig1e1, fig.height=4, fig.width=7, fig.cap="\\label{fig:fig1e1} Posterior estimation 100 realisation, matern $\\sigma^2 = 5$, $\\nu = 3$", fig.align="center" }
+```{r fig1e1, fig.height=4, fig.width=7, fig.cap="\\label{fig:fig1e2} Posterior estimation 100 realisation, matern $\\sigma^2 = 5$, $\\nu = 3$", fig.align="center" }
 generate_plot2 <- function(title, sigma_e_2){
   mu.d = rep(0, length(dd))
   mu.r = rep(0, length(xx))
@@ -633,7 +653,7 @@ p
 
 ```
 
-The results are illustrated in Figure \ref{fig1e1}. We also include the theoretical plots that the simulations are drawn from. For both with observation error and without observations error the empirical estimations seems to do well, although the mean has a tendency to stray away from the theoretical at points far away (naturally due to the higher variance). The confidence intervals is also less smooth, and seems to vary more.
+The results are illustrated in Figure \ref{fig1e2}. We also include the theoretical plots that the simulations are drawn from. For both with observation error and without observations error the empirical estimations seems to do well, and overlaps quite well with the theoretical bands. The largest differences between the two are seen furthest away from the observations points. Between $x\in(10,25)$ theoretical bands seems to have a slight tendency to be wider that the empirical bands, however the trend is not too clear. Close to the observation points the bands seems to be equally wide without observation error, with obserbation error there seems to be slightly more variation.  
 
 
 
@@ -648,8 +668,8 @@ Want to evaluate
 ```{r fig1f1, fig.height=4, fig.width=7, fig.cap="\\label{fig:fig1f1} Posterior estimation 100 realisation, matern $\\sigma^2 = 5$, $\\nu = 3$", fig.align="center" }
 draw <- generate_plot2("", 0)$draw
 est_int <- apply(draw, 2, function(x) length(x[x>2]))
-mean(est_int)
-var(est_int)
+mean_length <- mean(est_int)
+var_length <- var(est_int)
 
 mu.d = rep(0, length(dd))
 mu.r = rep(0, length(xx))
@@ -660,6 +680,8 @@ sigma.rd = cov.matr(xx, dd,  sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.f
 sigma.dr = t(sigma.rd)
 sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
 mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
+
+tilde.A <- sum(mu.r.d. > 2)
 
 # 90 percent confidence:
 c = qnorm(p = 0.95)
@@ -733,18 +755,24 @@ p
 The situation is illustrated in Figure \ref{fig:fig1f1}
 
 
-A prediction of $\hat A_r$ using our 100 realizations from the posterior model with $\sigma_\epsilon^2$:
+A prediction of Â using our 100 realizations from the posterior model with $\sigma_\epsilon^2$ is:
 \begin{equation}
     \hat A_r = \frac{1}{100}\sum_{i=1}^{100}\sum_{x\in L}I(r_i(x)>2)
 \end{equation}
+Applying this to our realisation we get: Â = `r mean_length` and Var(Â ) = `r var_length`
+
 Where we use the approximation:
 \begin{equation}
     A_r = \int_D I(r(x) > 2)dx \approx \sum_{x \in L}I(r(x)>2) dx 
 \end{equation}
-Another estimation is: 
+Another estimator is: 
 \begin{equation}
     \tilde A_r = \sum_{x \in L} I(\hat r(x) > 2)
 \end{equation}
+With our data we get: Ã =  `r tilde.A`
+
+We note that in our case $Â_r > Ã_r$. 
+
 
 If we let:
 \begin{equation}
@@ -802,6 +830,8 @@ This can also be used to show that we expect $\hat A > \tilde A$. By using that:
 \end{equation}
 The inequality can be easily proven by using this. 
 
+# Problem 1g)
+We have studied the matern and the powered exponential correlation function, and applied them to simulated data, to estiamte posteriors and their confidence. We find it interesteing how a change in the $\nu$ seem to change the differentiability of the end smoothness. Overall the empirical estimation methods seems to work well and are consistent with theory. 
 
 
 \newpage
@@ -880,7 +910,7 @@ and subject to the constraint $\sum_{i=1}^m \alpha_i g_j(\vect{x}_i) = \sum_{j}\
 
 Considering the case with $E(r(\vect x)) = \beta_1$, we estimated the universal krigging predictor and variance as follows:
 
-```{r fig3, echo=FALSE,  include=TRUE, fig.asp=1,fig.height=0.5,fig.cap="\\label{fig:fig3} Krigging predictions and prediction variance of the ordinary krigging method."}
+```{r include = FALSE}
 x <- topo$x
 y <- topo$y
 s <- cbind(x,y)
@@ -909,7 +939,9 @@ gg2 <- ggplot(dda1, aes(x=x, y=y, col= elev))+
   theme_classic()+
   theme(aspect.ratio = 1)+
   labs(title = "Prediction variance")
+```
 
+```{r fig3, echo=FALSE,  include=TRUE, fig.asp=1,fig.height=0.5,fig.cap="\\label{fig:fig3} Krigging predictions and prediction variance of the ordinary krigging method."}
 ggarrange(gg1,gg2, ncol=2, widths = c(1,1), heights = c(1,1))
 
 ```
@@ -1246,7 +1278,7 @@ These variograms are displayed in Figure \ref{fig:fig3d2}. They seem to vary qut
 
 
 # Problem 3f
-Using maximum likelihood to estiamte parameters seems to be relatively fast using the number of parameters we have here, and with enough data points it seems to be quite good at finding the correct parameters.
+In this problem we have used maxmium likelihood to estiamte the parameters of the correlation funciton. We have found that using maximum likelihood to estiamte parameters seems to be relatively fast using the number of parameters and observations we have here (althout **likfit** warns that the opposite might be the case). With enough data points maximum likelihood seems to be quite good at finding the correct parameters.
 
 
 
