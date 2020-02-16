@@ -856,7 +856,7 @@ It was observed that the data points did not move in the same direction as with 
 #Checking for stationarity
 g1 <- ggplot(data=topo)+geom_point(mapping = aes(x=topo$x, y = topo$z))+ theme_classic()+xlab("x")+ylab("z")+ labs(title="a)")+theme(aspect.ratio = 1)
 g2 <- ggplot(data=topo)+ geom_point(mapping = aes(x=topo$y, y = topo$z))+ theme_classic()+xlab("y")+ylab("z")+ labs(title="b)")+theme(aspect.ratio=1)
-g3 <- ggplot(data=topo) + geom_histogram(mapping=aes(x=topo$z, y = ..density..))#+ geom_frequency(mapping = aes(x=topo$z, y= ..density..))
+g3 <- ggplot(data=topo) + geom_histogram(mapping=aes(x=topo$z, y = ..density..)) + theme_classic()+xlab("z")#+ geom_frequency(mapping = aes(x=topo$z, y= ..density..))
 ggarrange(g1, g2, g3,nrow=2,ncol=2, widths = c(1,1), heights = c(1,1))
 ```
 
