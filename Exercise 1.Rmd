@@ -40,7 +40,11 @@ library(tidyr)
 library(dplyr)
 library(foreach)
 
+
+# Theme for ggplots
 text_size = 15
+
+theme 
 ```
 
 \newpage
@@ -115,7 +119,7 @@ tau.fun <-function(x, y){
 }
 
 matern.cov.fun <- function(tau, nu, sigma2){
-  sigma2 * Matern(d = tau, nu = nu)
+  sigma2 * fields::Matern(d = tau, range = 1, nu = nu)
 }
 
 powered.exp.cov.fun <- function(tau, nu, sigma2){
@@ -306,7 +310,10 @@ n.realizations <- function(n, xx, sigma2, nu, cov.fun, tau.fun, title = "title")
     xlab("x")  + ylab("r(x | d)")
   pl <- pl + geom_line(data = observations, aes(x = x, y = observed_value, color = trial)) + ggtitle(TeX(paste(title, "$\\nu =$", nu, ", $\\sigma^2 =$",sigma2))) +
      scale_color_discrete("Trial",labels = c("1", "2", "3", "4"),
-                       guide = guide_legend(label.hjust = 0.1)) 
+                       guide = guide_legend(label.hjust = 0.1)) + 
+    ylim(c(-7, 7)) + 
+    xlim(c(0, 50))
+  
   list(p = pl, dat = draw)
 }
 n <- 4
@@ -464,7 +471,7 @@ Assuming we have realisations of $\vect d$ from simulated data we can study how 
     sigma.dr = t(sigma.rd)
     sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
     mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
-    # 90 percent confidence:
+    # 90  percent confidence:
     c = qnorm(p = 0.95)
     variances = diag(sigma.r.d) 
     variances[variances < 1e-12] = 0
@@ -476,26 +483,32 @@ Assuming we have realisations of $\vect d$ from simulated data we can study how 
     
     p <- ggplot(data = as.data.frame(cbind(xx, mu.r.d., min.90, max.90, observations))) +
       geom_line(aes(x = xx, y = mu.r.d.)) +
-      geom_line(aes(x = xx, y = min.90), linetype = "dashed") + 
-      geom_line(aes(x = xx, y =max.90), linetype = "dashed") +
+      #geom_line(aes(x = xx, y = min.90), linetype = "dashed") + 
+      #geom_line(aes(x = xx, y =max.90), linetype = "dashed") +
       geom_ribbon(aes(x = xx, ymin = min.90, ymax = max.90), alpha = 0.5, fill = "skyblue") + 
-      geom_point(aes(x = xx, y = mu.r.d.)) +
-      geom_point(aes(x = xx, y = min.90), alpha = 0.5) +
-      geom_point(aes(x = xx, y = max.90), alpha = 0.5) +
+      # geom_point(aes(x = xx, y = mu.r.d.)) +
+     # geom_point(aes(x = xx, y = min.90), alpha = 0.5) +
+      #geom_point(aes(x = xx, y = max.90), alpha = 0.5) +
       #geom_point(aes(x = xx, y = observations), alpha = 0.5, color = "red") +
       geom_line(aes(x = xx, y = matern_dat[,2]), color = "red") +# The actual realisation
       geom_vline(xintercept = dd) + 
       ggtitle(title) +
       xlab("x") +
-      ylab("r|d")  
+      ylab("r|d") + 
+      xlim(c(0,50)) + 
+      ylim(c(-6, 6)) + 
+      theme_classic()
+      
       
     p
   }
   p1 <- generate_plot(title = "a) Without observation error", 0)
   p2 <- generate_plot("b) With observation error", .25)
     
-  p <- ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1)
-  p <- annotate_figure(p, top = text_grob("Matern Posterior Realisation", size = 17))
+  p <- ggarrange(p1,p2, ncol=2, widths = c(1,1), heights = c(1,1), nrow = 1, common.legend=T, legend ="bottom")
+  p <- annotate_figure(p, top = text_grob("Matern. Posterior of realisation w/ 90% confidence", size = 17)) +
+     scale_color_discrete("Trial",labels = c("1", "2", "3", "4"),
+                       guide = guide_legend(label.hjust = 0.1)) 
   p
 
 ```
@@ -589,7 +602,7 @@ The results are illustrated in Figure \ref{fig1e1}. We also include the theoreti
 
 
 
-# Problem 1f
+## Problem 1f
 
 Want to evaluate 
 
@@ -955,7 +968,7 @@ with $\tau = |\vect x - \vect x'|$
 Discretize the random field with  $L:\left[(1,30) \times (1,30)\right] \in D$ with parameters $\sigma_r^2$ and $\xi_r = 3$. And simulate realizations. 
 
 
-```{r fig3a1, fig.height=10, fig.width=5, fig.cap="\\label{fig:fig3a1} Realizations of field with $\\xi = 3$, $\\sigma^2 = 2$", fig.align="center" }
+```{r fig3a1, fig.height=14, fig.width=7, fig.cap="\\label{fig:fig3a1} Realizations of field with $\\xi = 3$, $\\sigma^2 = 2$", fig.align="center" }
 
 # library(ggplot2)
 # library(reshape2)
@@ -1166,8 +1179,8 @@ res3 <- l.fit(64, colour = "Green")
 res4 <- l.fit(100, colour = "Purple")
 
 likfit.9 <- res2$likfit
-likfit.64 <- res2$likfit
-likfit.100 <- res2$likfit
+likfit.64 <- res3$likfit
+likfit.100 <- res4$likfit
 ```
 
 The ML estimates of the parameters were: 
