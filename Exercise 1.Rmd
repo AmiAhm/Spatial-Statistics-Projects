@@ -653,7 +653,7 @@ p
 
 ```
 
-The results are illustrated in Figure \ref{fig1e2}. We also include the theoretical plots that the simulations are drawn from. For both with observation error and without observations error the empirical estimations seems to do well, and overlaps quite well with the theoretical bands. The largest differences between the two are seen furthest away from the observations points. Between $x\in(10,25)$ theoretical bands seems to have a slight tendency to be wider that the empirical bands, however the trend is not too clear. Close to the observation points the bands seems to be equally wide without observation error, with obserbation error there seems to be slightly more variation.  
+The results are illustrated in Figure \ref{fig:fig1e2}. We also include the theoretical plots that the simulations are drawn from. For both with observation error and without observations error the empirical estimations seems to do well, and overlaps quite well with the theoretical bands. The largest differences between the two are seen furthest away from the observations points. Between $x\in(10,25)$ theoretical bands seems to have a slight tendency to be wider that the empirical bands, however the trend is not too clear. Close to the observation points the bands seems to be equally wide without observation error, with obserbation error there seems to be slightly more variation.  
 
 
 
@@ -850,7 +850,7 @@ contour(topo.li,add=T)
 points(topo$x,topo$y)
 ```
 
-It was observed that the data points did not move in the same direction as with the x and y cordinates (see figure \ref{fig:fig2} a;b). This suggest that the data is not mean stationary. Moreover, a density plot for the data points in figure {fig:fig2} c) shows a skewness in the data, making the Guassianity assumption doubtful. Hence a stationary Gaussian RF may not be appropriate.
+It was observed that the data points did not move in the same direction as with the x and y cordinates (see figure \ref{fig:fig2} a;b). This suggest that the data is not mean stationary. Moreover, a density plot for the data points in figure \ref{fig:fig2} c) shows a skewness in the data, making the Guassianity assumption doubtful. Hence a stationary Gaussian RF may not be appropriate.
 
 ```{r fig2, echo=FALSE,  include=TRUE, fig.asp=1,fig.height=0.5,fig.cap="\\label{fig:fig2} Plot of the data points with respect to their a) x-cordinates and b) y-cordinates; and c) shows the density distribution of the terrain elevation observations."}
 #Checking for stationarity
@@ -957,7 +957,7 @@ $$
 E \{r(\vect{x}) \} = \beta_1 + \beta_2x_v + \beta_3x_h + \beta_4x_vx_h + \beta_5x_v^2 + \beta_6x_h^2 .
 $$
 
-```{r fig4, echo=FALSE, fig.asp=1, fig.cap="\\label{fig:fig4} Predictions and associated variance, fig.height=0.5"}
+```{r include = FALSE}
 
 kripar1 <- krige.control(type.krige = "OK", cov.model = "powered.exponential", trend.d="2nd",trend.l="2nd" ,cov.pars = c(2500,100), kappa = 1.5)
 pred1 <- krige.conv(geodata, coords = s, data=geodata$data, locations = sp, krige = kripar1)
@@ -980,15 +980,19 @@ gg2 <- ggplot(dd1, aes(x=x, y=y, col= elev))+
   theme_classic()+
   theme(aspect.ratio = 1)+
   labs(title = "Prediction variance")
+```
+
+```{r  fig4, echo=FALSE, fig.asp=1, fig.cap="\\label{fig:fig4} Predictions and associated variance, fig.height=0.5"}
 
 ggarrange(gg1,gg2, ncol=2, widths = c(1,1), heights = c(1,1))
+
 ```
 We present the predictions and the associated variance in Figure \ref{fig:fig4}
 
 ## Problem 2e
 
 
-```{r echo=FALSE}
+```{r include=FALSE}
 dp <- cbind(100,100)
 kripar <- krige.control(type.krige = "OK", cov.model = "powered.exponential", cov.pars = c(2500,100), kappa = 1.5)
 pred <- krige.conv(geodata, coords = s, data=geodata$data, locations = dp, krige = kripar)
