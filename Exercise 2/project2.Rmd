@@ -1,0 +1,190 @@
+---
+title: "Project 2"
+output:
+  pdf_document:
+    fig_caption: yes
+    includes:
+      in_header: preamble.tex
+  html_document:
+    df_print: paged
+    includes:
+      in_header: preamble.tex
+editor_options:
+  chunk_output_type: console
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(tidyverse)
+library(ggforce)
+```
+
+# Problem 3
+## Neumann-Scott Event RF
+In the Neumann-Scott Event RF points are assumed distributed around some mother locations. The number of mother nodes often follow a poission distribution. With intensity $\lambda_m$, the number of points (children) around the mother node is then assume to follow a distribution according to the count pdf $p(k)$ and the intensity $p(\vect x| \vect x_j^M)$. The points are assumed independent, around a mother node. The intensity pdf is usually gaussian, with center in the mother node.
+
+A possible border problem when dealing with a finite event space is that the intensity function, especially the guassian, might generate points outisde of the event space. A possibility is to use a function that enforces border conditions, i.e. the torus border condntions, when generating points. 
+
+## Investigating the redwood data 
+
+We first plot the data:
+```{r}
+redwood <- read.csv("redwood.dat", header = F, sep = " ")
+redwood <- as.data.frame(redwood)
+colnames(redwood) <- c("x", "y")
+
+ggplot(data = redwood) + geom_point(aes(x,y)) + theme_classic()
+
+```
+There seems to be some clusters of redwood. Want to fit an empirical Neumann Scott Event-ref. 
+
+From the data there seems to be 8 mother nodes, with clusters of redwoods around. 
+
+To avoid having to classify each point by hand, we use hierchical clustering with L2 distance to find the cluster and their centers. We use centroid clustering, and will use the centroids as estimation of position to the mother node. We have already counted 8 mothernodes, so we will use that estiamate.  
+```{r}
+# Doing hierchical clustering with centroid and eculidan
+dist_mat <- dist(redwood, method = 'euclidean') # Calculate distances
+hclust_centroid <- hclust(dist_mat, method = 'centroid') # Use centroid as moteher node
+
+```
+
+```{r}
+plot(hclust_centroid, main = "Cluster Dendogram for Redwoods. \n Centroid method w/ euclidian distance")
+```
+The cluster dendogram is illustrated in Figure \ref{some figure}
+
+```{r}
+cut_centroid <- cutree(hclust_centroid, k = 8) # Find node of elements when we have 7 groups
+```
+
+```{r}
+redwood$mother = as.factor(cut_centroid)
+```
+```{r}
+ggplot(redwood) + geom_point(aes(x= x, y = y, color = mother, shape = mother)) + theme_classic() +  scale_shape_manual(values=1:nlevels(redwood$mother))
+
+```
+
+Classiying by cluster we get the following plot. See \ref{some figure}
+
+We know find the position of the centroids. (As hclus does not give us that we do it manually)
+```{r}
+# Finding centers and count for each mother
+mothers <- redwood %>% 
+  group_by(mother) %>% 
+  summarise(x = mean(x),
+            y = mean(y), 
+            n = n()) %>%
+  as.data.frame()
+```
+
+We also want to estiamte the standard deviation. If we assume that each cluster has independent standard deviation. And the each mother estimation is unbiased. We get: (as deviation in x-coordinate and y-coordiante are independent and equally normally distributed)
+```{r}
+# Estimating standard dev 
+redwood_w_mother <- left_join(redwood, mothers, by = c("mother"))
+colnames(redwood_w_mother) <- c("x", "y", "mother", "x.m", "y.m", "n")
+redwood_w_mother$dist_mother <- sqrt((redwood_w_mother$x - redwood_w_mother$x.m)^2 + (redwood_w_mother$y - redwood_w_mother$y.m)^2)
+redwood_w_mother$x.dist <- redwood_w_mother$x - redwood_w_mother$x.m
+redwood_w_mother$y.dist <- redwood_w_mother$y - redwood_w_mother$y.m
+
+std2 <- 1/(length(redwood_w_mother$x.dist) + length(redwood_w_mother$y.dist) - 1)* (sum(redwood_w_mother$x.dist^2) + sum(redwood_w_mother$y.dist^2))
+
+q95 <- qnorm(0.95, mean = 0, sd = sqrt(std2))
+
+```
+If we assume that they a common standard deviation we get:  `r std2`
+
+Plotting the redwood forest, with the mother nodes we get:
+
+```{r}
+ggplot() +
+  geom_point(aes(x= redwood$x, y = redwood$y, color = redwood$mother, shape = redwood$mother)) +
+  theme_classic() + 
+  scale_shape_manual(values=1:nlevels(redwood$mother)) +
+  geom_point(aes(x = mothers$x, y = mothers$y)) + 
+  geom_circle(aes(r = rep(q95, length(mothers$y)), y0 = mothers$y, x0 = mothers$x), linetype = "dashed", alpha = 0.8)
+```
+
+
+TODO: Q are mother nodes a part of the count ? 
+TODO: Q what is the TORUS-3d algorithm not in my version of the note (p. 131). Is it to project outliers onto some torus? Then shifting them around some
+
+
+Create a grid of 100 points and estimate the J-function. 
+\begin{equation}
+J(t) = \frac{\vect E(k_{B_{\vect x_0(t)}} -1)}{|B_{\vect x_0}(t) \cap D|}
+\end{equation}
+
+```{r}
+df <- redwood
+# Grid of observation points
+xx <- seq(from = 0, to = 1, by = 0.1)
+yy <- seq(from = 0, to = 1, by = 0.1)
+
+# Distances we want to check out 
+ds <- seq(from = 0.01, to = 1, by = 0.05)
+
+library(foreach)
+library(doParallel)
+# Checking points within radius at all distances
+res <- list()
+areas <- list()
+foreach(d=ds) %do% {
+    Jt = matrix(NA, nrow = length(xx), ncol = length(yy))
+    foreach(i=1:length(xx)) %do% {
+          foreach(j=1:length(yy)) %do% {
+            top <- min(1, yy[j] + d)
+            bot <- max(0, yy[j] - d)
+            left <- max(0, xx[i] - d)
+            right <- min(1, xx[i] + d)
+            
+            h <- top -bot
+            w <- right - left
+            a = h*w 
+            Jt[i, j] = a
+          }
+    }
+    areas <- c(areas, list(list(d = d, A = Jt)))
+}
+
+foreach(d=1:length(ds)) %do% {
+  dists <- ds[d]
+  # Matrix that will store counts
+  Jt = matrix(NA, nrow = length(xx), ncol = length(yy))
+  foreach(i=1:length(xx)) %do% {
+    df$xs <- xx[i]
+    foreach(j=1:length(yy)) %do% {
+      df$ys <- yy[j]
+      df$dist.x <- abs(df$x - df$xs)
+      df$dist.y <- abs(df$y - df$ys)
+      Jt[i, j] = sum((df$dist.x < dists) &(df$dist.y < dists))
+    }
+  }
+  Jt = Jt/areas[[d]]$A
+  res <- c(res, list(list(dist = dists, Jt = Jt)))
+}
+
+res2 <- lapply(res, function(M) c(M$dist, as.vector(M$Jt)))
+res2 <- Reduce(rbind, res2)
+res2 <- as.data.frame(res2)
+colnames(res2)[1] <- "dist"
+
+library(ggplot2)
+p <- ggplot(res2) +
+  geom_line(aes(x=dist, y = V2)) +
+  geom_line(aes(x=dist, y = V10)) +
+  geom_line(aes(x=dist, y = V20)) +
+  geom_line(aes(x=dist, y = V40)) +
+  geom_line(aes(x=dist, y = V60)) +
+  geom_line(aes(x=dist, y = V80)) +
+  geom_line(aes(x=dist, y = V100)) +
+  geom_line(aes(x=dist, y = V122))
+
+p
+
+
+```
