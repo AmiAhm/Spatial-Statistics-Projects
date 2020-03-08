@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1581363795869.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "611FD773",
+    "lastKnownWriteTime" : 1581368947,
+    "last_content_update" : 1581372654767,
+    "path" : "~/GitHub/Spatial-Statistics-Project1/problem3/problem3.R",
+    "project_path" : "problem3/problem3.R",
+    "properties" : {
+        "cursorPosition" : "110,6",
+        "scrollLine" : "65",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

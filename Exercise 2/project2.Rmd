@@ -314,3 +314,95 @@ Usually we have:
                 \end{array}
               \right.
 \end{equation}
+
+Model parameters if we use the above equations are thus: $(\phi_0, \phi_1, \tau_0)$ where \phi_0 can be looked upon as how likely an even is to happen when closer than $\tau_0$ to something else. \phi_1 is a 
+
+A way to deal with boundary conditions is to not accept steps outside of the area $D$
+
+
+```{r}
+# Gibbs sampler
+cell <- read.csv("cell.dat", header = F, sep = " ")
+cell <- as.data.frame(cell)
+colnames(cell) <- c("x", "y")
+```
+We look at the data
+```{r}
+ggplot(data = cell) + geom_point(aes(x,y)) + theme_classic()
+
+```
+Seems to be evenly spread, no clear clusters.  Look at $J(t)$ plot
+
+```{r}
+
+D = ppregion(xl = 0, xu = 1, yl = 0, yu = 1)
+
+cell.pp <- list(
+  x = cell$x, 
+  y = cell$y, 
+  area = D
+)
+```
+
+```{r}
+knf <- Kfn(cell.pp, 1)
+plot(knf)
+
+xx <- seq(0,10, by = 0.01)
+plot(xx, exp(-xx))
+```
+
+```{r}
+df <- cell
+phi0 <- 0.01
+tau0 <- 0.1 
+phi1 <- 1 
+
+phi <- function(tau, phi0, phi1, tau0){
+  if(tau < tau0){
+    phi0
+  }
+  
+  phi0*exp(-phi1*abs(tau - tau0))
+}
+
+tau <- function(x1, x2){
+  sqrt(sum((x1-x2)^2)) 
+}
+
+gibsstep <- function(df, phi0, tau0, phi1){
+  u <- runif(nrow(df))
+  for(i in 1:nrow(df)){
+    xu <- as.vector(df[i,])
+    xp <- runif(2)
+    
+    right <- apply(df, 1, function(x) tau(xu, x))
+    left <- apply(df, 1, function(x) tau(xp, x))
+    
+    right <- sapply(right, function(x) phi(x, phi0, phi1, tau0))
+    left <- sapply(left, function(x) phi(x, phi0, phi1, tau0))
+    
+    res <- -sum(left - right)
+    alpha <- exp(res)
+    alpha <- min(1, alpha)
+    if(alpha < u[i]){
+      df[i,] = xp
+    }
+  }
+  df
+}
+
+count = 0
+res <- list()
+while(count < 2000){
+  print(count)
+  df <- gibsstep(df, phi0, tau0, phi1)
+  count <- count + 1
+  if(count > 1000 && count %% 100 == 0) list(res, list(list(df)))
+}
+
+
+```
+
+
+

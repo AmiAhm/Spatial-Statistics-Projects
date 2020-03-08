@@ -1,0 +1,112 @@
+source("./problem1/main.R")
+
+# Problem 1
+# 1a)
+xi = 3
+sigma2 = 2
+
+obs.points <- expand.grid(x = 1:30, y =1:30)
+obs.points <- as.matrix(grid)
+dist <- function(x, y){
+  sqrt(sum((x-y)^2))
+}
+
+cor <- function(x,y, xi, sigma2){
+  tau <- dist(x, y)
+  sigma2 * exp(-tau/xi)
+}
+
+
+create_covariance_matrix <- function(X, Y, xi, sigma2){
+  res <- matrix(NA, nrow=nrow(X), ncol = nrow(Y))
+  for(i in 1:nrow(X)){
+    for(j in 1:nrow(Y)){
+      res[i, j] = cor(X[i,], Y[j,], xi, sigma2)
+    }
+  }
+  res
+}
+
+Sigma <- create_covariance_matrix(obs.points, obs.points, xi, sigma2)
+mu <- rep(0, nrow(obs.points))
+
+library(fields)
+
+realize_3 <- function(){
+  draw <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
+  x <- 1:30
+  y <- 1:30
+  length.y <- 30
+  length.x <- 30
+  obs.grid <- matrix(NA, nrow = length.x,ncol = length.y)
+  for(i in 1:length.x){
+    for(j in 1:length.y){
+      i <- as.numeric(i)
+      j <- as.numeric(j)
+      obs.grid[i,j] <- draw[((j-1)*length.y)+i]
+    }
+  }
+  
+  p <- fields::image.plot(x = 1:30, y = 1:30, z= obs.grid, xlab = "x", ylab = "y", main ="Realizations of Problem 1")
+  return(p)
+  
+}
+
+p1 <- realize_3()
+p2 <- realize_3()
+p3 <- realize_3()
+
+# Problem 3b)
+library(geoR)
+# Drawing points from distribution, "exact" realizations
+draw <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
+
+# Converting to data frame
+df <- cbind(obs.points, draw)
+
+# Converting to geo object
+geo.dat <- as.geodata(df)
+
+# Calculating emprical variogram based on one realization
+emp.variog <- variog(geo.dat, nugget.tolerance = 0.01)
+plot(emp.variog)
+# Calculating theoretical variogram
+xx <- seq(0, 40, by = 0.01)
+theo.variog <- sapply(xx, function(x) sigma2*(1-cor(x, 0, xi, 1)))
+plot(x = xx, y = theo.variog, ylim = c(0,4))
+lines(emp.variog, col = "blue")
+
+# Problem 3d
+solve_3d <- function(n)
+{
+  xx <- runif(n)*30
+  yy <- runif(n) * 30
+  obs.points <- cbind(xx, yy)
+  mu <- rep(0, n)
+  Sigma <- create_covariance_matrix(obs.points, obs.points, xi, sigma2)
+  draw <- MASS::mvrnorm(n = 1, mu = mu, Sigma = Sigma)
+  # Converting to data frame
+  df <- cbind(obs.points, draw)
+  # Converting to geo object
+  geo.dat <- as.geodata(df)
+
+  # Calculating emprical variogram based on one realization
+  emp.variog <- variog(geo.dat, nugget.tolerance = 0.01)
+  # Calculating theoretical variogram
+  xx <- seq(0, 40, by = 0.01)
+  theo.variog <- sapply(xx, function(x) sigma2*(1-cor(x, 0, xi, 1)))
+  p <- plot(x = xx, y = theo.variog, ylim = c(0,4))
+  p <- lines(emp.variog, col = "blue")
+  lf <- likfit(geo.dat, cov.model = "exponential", ini.cov.pars = c(1,1)) # Todo: What does beta and tausq mean? 
+  return(list(likfit = lf, plot <- p, geo.dat <- geo.dat))
+  
+}
+res3d <- solve_3d(36)
+# Problem 3e)
+res3e <- solve_3d(36)$likfit
+
+# Problem 3d)
+res3D1 <- solve_3d(9)$likfit
+res3D2 <- solve_3d(64)$likfit
+res3D3 <- solve_3d(100)$likfit
+

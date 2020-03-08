@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1581191654660.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "A836F3B2",
+    "lastKnownWriteTime" : 1581191637,
+    "last_content_update" : 1581191637,
+    "path" : "~/GitHub/Spatial-Statistics-Project1/problem1/main.R",
+    "project_path" : "problem1/main.R",
+    "properties" : {
+        "cursorPosition" : "164,0",
+        "scrollLine" : "154"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

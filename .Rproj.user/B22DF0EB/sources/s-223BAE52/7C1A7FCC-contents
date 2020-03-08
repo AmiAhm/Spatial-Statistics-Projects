@@ -1,0 +1,66 @@
+source("TreedGLMClass.R")
+
+#
+# tree <- create_tree(rep(1,5))
+# tree <- grow(1, tree)
+# tree <- grow(2, tree)
+# tree[[1]]@main@col = 4
+# tree[[1]]@main@split_value = 0.6
+# tree[[2]]@main@col = 4
+# tree[[2]]@main@split_value = 0.2
+# tree[[4]]@parameters = c(0.5, 0.5, .2, .3, .4)
+# tree[[5]]@parameters = c(0.5, 0.5, 3, 2, .8)
+# tree[[3]]@parameters = c(0.5, 0.5, 4, -2, 1)
+#
+# model.data <- generate_ml_data(125, 2, 2, target_tree = tree)
+#
+# #  tglm <- new("TreedGLM")
+# #  formula(tglm) <- y ~ V1 + V2 + intercept| V4 + V5
+# #  tglm.data(tglm) <- model.data$df
+# #  parameters(tglm) <- list(model = "INLA")
+# # #
+# # load("tree.RData")
+#
+#
+# tglm <- TreedGLM(y ~ V1 + V2 + intercept| V4 + V5, data =  model.data$df, parameters = list(model = "INLA"))
+# save(tglm, file = "data/INLA_test_tglm_125.RData")
+n <- 50
+#for(n in c(200, 300, 400, 500, 750, 1000)){
+ tree <- create_tree(rep(1,5))
+ tree <- grow(1, tree)
+ tree <- grow(2, tree)
+ tree[[1]]@main@col = 4
+ tree[[1]]@main@split_value = 0.6
+ tree[[2]]@main@col = 4
+ tree[[2]]@main@split_value = 0.2
+ tree[[4]]@parameters = c(0.5, 0.5, .2, .3, .4)
+ tree[[5]]@parameters = c(0.5, 0.5, 3, 2, .8)
+ tree[[3]]@parameters = c(0.5, 0.5, 4, -2, 1)
+ model.data <- generate_ml_data(n, 2, 2, target_tree = tree, target_model="liner.model")
+ #  tglm <- new("TreedGLM")
+ #  formula(tglm) <- y ~ V1 + V2 + intercept| V4 + V5
+ #  tglm.data(tglm) <- model.data$df
+ #  parameters(tglm) <- list(model = "INLA")
+ # #
+ # load("tree.RData")
+ tglm <- TreedGLM(y ~ V1 + V2 + intercept| V4 + V5, data =  model.data$df, parameters = list(model = "INLA"))
+# save(tglm, file = paste0("data/INLA_test_tglm_",n,".RData"))
+# save(tree, file = paste0("data/INLA_test_tglm_tree",n,".RData"))
+#}
+#load("data/random_intercept_500_tglm.RData")
+# tglm.plot(tglm)
+#
+# # Test - simple stuff, no fancy models
+# model.data = generate_ml_data(250, 2, 2, target_tree = tree)
+
+
+ X <- as.matrix(model.data$df[,-6])
+ y <- as.matrix(model.data$df$y)
+# #plot_tree(y, X,column =  model.data$target_tree[[1]]@main@col, tree = model.data$target_tree)
+# tree[[1]]@main@split_value = 0.2
+# #tree <- data$target_tree
+# #result <- grow_model_tree(y, X, exclude_var, fit_model, loglik_model)
+# #plot_tree(y, X,column =  4, tree = result$tree)
+
+#load("tree.RData")
+#tree

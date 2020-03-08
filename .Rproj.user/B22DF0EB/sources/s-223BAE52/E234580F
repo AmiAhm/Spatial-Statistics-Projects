@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1581365862560.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "641023474",
+    "id" : "E234580F",
+    "lastKnownWriteTime" : 1581191637,
+    "last_content_update" : 1581191637,
+    "path" : "~/GitHub/Spatial-Statistics-Project1/problem1/oldCovariance.R",
+    "project_path" : "problem1/oldCovariance.R",
+    "properties" : {
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
