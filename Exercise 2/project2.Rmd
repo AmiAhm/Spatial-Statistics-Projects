@@ -22,6 +22,7 @@ library(tidyverse)
 library(ggforce)
 library(spatial)
 library(MASS)
+library(ggpubr)
 ```
 
 # Problem 3
@@ -347,12 +348,10 @@ cell.pp <- list(
 ```{r}
 knf <- Kfn(cell.pp, 1)
 plot(knf)
-
-xx <- seq(0,10, by = 0.01)
-plot(xx, exp(-xx))
 ```
 
 ```{r}
+set.seed(2)
 df <- cell
 phi0 <- 0.01
 tau0 <- 0.1 
@@ -370,8 +369,12 @@ tau <- function(x1, x2){
   sqrt(sum((x1-x2)^2)) 
 }
 
-gibsstep <- function(df, phi0, tau0, phi1){
+gibsstep <- function(df, phi0, tau0, phi1, all = F){
   u <- runif(nrow(df))
+  
+  proposals <- df 
+  proposals$accepted <- FALSE
+  
   for(i in 1:nrow(df)){
     xu <- as.vector(df[i,])
     xp <- runif(2)
@@ -385,22 +388,90 @@ gibsstep <- function(df, phi0, tau0, phi1){
     res <- -sum(left - right)
     alpha <- exp(res)
     alpha <- min(1, alpha)
-    if(alpha < u[i]){
+    print(alpha )
+    if(u[i] < alpha){
       df[i,] = xp
+      proposals[i,]$accepted <- TRUE
+
     }
+    proposals[i,c(1,2)] = xp
   }
+  
+  if(all){
+    return(list(df = df, proposals = proposals))
+  }
+  
   df
 }
+```
 
+```{r}
+df2 <- gibsstep(df, phi0, tau0, phi1, all = T)$proposals
+df.new <- cbind(df, df2)
+df.new$id <- 1:nrow(df.new)
+colnames(df.new) <- c("x1", "y1", "x2", "y2", "accepted","id")
+
+
+
+```
+
+
+```{r}
 count = 0
 res <- list()
-while(count < 2000){
+df.t <- df
+while(count < 250){
   print(count)
-  df <- gibsstep(df, phi0, tau0, phi1)
+  df.t <- gibsstep(df.t, phi0, tau0, phi1)
   count <- count + 1
-  if(count > 1000 && count %% 100 == 0) list(res, list(list(df)))
+  if(count == 1){
+    df.1 <- df.t
+  }
+  #if(count > 20 && count %% 5 == 0)
+  res <- c(res, list(df.t))
 }
 
+# Creating kfns
+rels <- lapply(res, function(df) list(x = df[,1], y = df[,2], area = D))
+kfns <- lapply(rels, function(rel) Kfn(rel, 1, k = 200))
+bands <- sapply(kfns, function(kfn) kfn$y)
+lower_band <- apply(bands, 1, function(x) quantile(x, probs = 0.025))
+upper_band <- apply(bands, 1, function(x) quantile(x, probs = 0.975))
+mid_band <- apply(bands, 1, function(x) quantile(x, probs = 0.5))
+```
+
+Create trace plot
+```{r}
+# x and y independent so look at trace for x and ys sepearetly. Look at poistion of first sel
+pos1.x <- sapply(res, function(df) df[1,1])
+pos1.y <- sapply(res, function(df) df[1,2])
+
+# Create trace plots 
+ggplot() + theme_classic() + geom_line(aes(x = 1:length(pos1.x), y = pos1.x))
+
+ggplot() + theme_classic() + geom_line(aes(x = 1:length(pos1.y), y = pos1.y))
+```
+
+```{r}
+
+```
+
+
+
+
+We first iteration, 5t iteration, 10th iteration and initial iteration together
+
+```{r}
+p0 <- ggplot(data = df) + geom_point(aes(x,y)) + theme_classic() + ggtitle("Initial realization")
+p1 <- ggplot(data = df.1) + geom_point(aes(x,y)) + theme_classic() + ggtitle("First realization")
+p2 <- ggplot(data = res[[1]]) + geom_point(aes(x,y)) + theme_classic() + ggtitle("5th realization")
+p3 <- ggplot(data = res[[2]]) + geom_point(aes(x,y)) + theme_classic() + ggtitle("10th realization")
+ggarrange(p0, p1, p2, p3, nrow = 2, ncol = 2)
+```
+
+We plot a confidence band our simulated data and compare to the observed. 
+```{r}
+ggplot() + geom_ribbon(aes(x = kfn$x, ymax = upper_band, ymin = lower_band), alpha = 0.3) + geom_line(aes(x = kfn$x, y = kfn$y)) + theme_classic()
 
 ```
 
