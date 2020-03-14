@@ -11,3 +11,5 @@ forcats
 ggforce
 spatial
 MASS
+magrittr
+ggpubr
