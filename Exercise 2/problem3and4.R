@@ -12,7 +12,6 @@ redwood <- read.csv("redwood.dat", header = F, sep = " ")
 redwood <- as.data.frame(redwood)
 colnames(redwood) <- c("x", "y")
 
-ggplot(data = redwood) + geom_point(aes(x,y)) + theme_classic()
 
 
 # Doing hierchical clustering with centroid and eculidan
@@ -108,19 +107,28 @@ neumann_scot_generate <- function(lambda.m, lambda.c, std2, seed){
   list(xs = xs, mothers = mothers) 
 }
 
+
+
 # Test differnt parameters
 lambda.m <- 8
-lambda.c <- 7.75
+lambda.c <- 7.75 #mean 
+std2 <- std2
 n.rels <- 1000
 rels <- lapply(1:n.rels, function(seed) neumann_scot_generate(lambda.m = lambda.m, lambda.c = lambda.c, std2 = std2, seed = seed)$xs)
 rels <- lapply(rels, function(rel) list(x = rel[,1], y = rel[,2], area = D))
 kfns <- lapply(rels, function(rel) Kfn(rel, 1, k = 200))
 bands <- sapply(kfns, function(kfn) kfn$y)
-lower_band <- apply(bands, 1, function(x) quantile(x, probs = 0.05))
-upper_band <- apply(bands, 1, function(x) quantile(x, probs = 0.95))
-mid_band <- apply(bands, 1, function(x) quantile(x, probs = 0.5))
+lower_band1 <- apply(bands, 1, function(x) quantile(x, probs = 0.05))
+upper_band1 <- apply(bands, 1, function(x) quantile(x, probs = 0.95))
+mid_band1 <- apply(bands, 1, function(x) quantile(x, probs = 0.5))
 
-ggplot() + geom_ribbon(aes(x = kfn$x, ymax = upper_band, ymin = lower_band), alpha = 0.3) + geom_line(aes(x = kfn$x, y = kfn$y))
+
+p1 <-  ggplot() + geom_ribbon(aes(x = kfn$x, ymax = upper_band1, ymin = lower_band1), alpha = 0.3) + 
+  geom_line(aes(x = kfn$x, y = kfn$y)) + 
+  theme(text = element_text(size=20)) +
+  theme_classic() + xlab("Distance") +
+  ylab("Kfn") + 
+  ggtitle(paste("lambda.c: ", lambda.c, "lambda.m: ", lambda.m, "\nstd2: ", round(std2,3)))
 
 # Seems to be a bit bad a mid distances, a higher variance might on spread might help on that. 
 lambda.m <- 7.5
@@ -130,43 +138,57 @@ rels <- lapply(1:n.rels, function(seed) neumann_scot_generate(lambda.m = lambda.
 rels <- lapply(rels, function(rel) list(x = rel[,1], y = rel[,2], area = D))
 kfns <- lapply(rels, function(rel) Kfn(rel, 1, k = 200))
 bands <- sapply(kfns, function(kfn) kfn$y)
-lower_band <- apply(bands, 1, function(x) quantile(x, probs = 0.05))
-upper_band <- apply(bands, 1, function(x) quantile(x, probs = 0.95))
-mid_band <- apply(bands, 1, function(x) quantile(x, probs = 0.5))
-ggplot() + geom_ribbon(aes(x = kfn$x, ymax = upper_band, ymin = lower_band), alpha = 0.3) + geom_line(aes(x = kfn$x, y = kfn$y))
+lower_band2 <- apply(bands, 1, function(x) quantile(x, probs = 0.05))
+upper_band2 <- apply(bands, 1, function(x) quantile(x, probs = 0.95))
+mid_band2 <- apply(bands, 1, function(x) quantile(x, probs = 0.5))
 
+p2 <-  ggplot() + geom_ribbon(aes(x = kfn$x, ymax = upper_band2, ymin = lower_band2), alpha = 0.3) + 
+  geom_line(aes(x = kfn$x, y = kfn$y)) + 
+  theme(text = element_text(size=20)) +
+  theme_classic() + xlab("Distance") +
+  ylab("Kfn") + 
+  ggtitle(paste("lambda.c: ", lambda.c, "lambda.m: ", lambda.m, "\nstd2: ", round(std2,3)))
 
-# Helped somewhat, change lambda somewhat to see if it helps. 
 lambda.m <- 7.5
 lambda.c <- 6
 n.rels <- 1000
-std2 <- 1.5*std2
+std2 <- 3*std2
 rels <- lapply(1:n.rels, function(seed) neumann_scot_generate(lambda.m = lambda.m, lambda.c = lambda.c, std2 = std2, seed = seed)$xs)
 rels <- lapply(rels, function(rel) list(x = rel[,1], y = rel[,2], area = D))
 kfns <- lapply(rels, function(rel) Kfn(rel, 1, k = 200))
 bands <- sapply(kfns, function(kfn) kfn$y)
-lower_band <- apply(bands, 1, function(x) quantile(x, probs = 0.05))
-upper_band <- apply(bands, 1, function(x) quantile(x, probs = 0.95))
+lower_band3 <- apply(bands, 1, function(x) quantile(x, probs = 0.05))
+upper_band3 <- apply(bands, 1, function(x) quantile(x, probs = 0.95))
 mid_band <- apply(bands, 1, function(x) quantile(x, probs = 0.5))
 
-ggplot() + geom_ribbon(aes(x = kfn$x, ymax = upper_band, ymin = lower_band), alpha = 0.3) + geom_line(aes(x = kfn$x, y = kfn$y))
-
+p3 <-  ggplot() + geom_ribbon(aes(x = kfn$x, ymax = upper_band3, ymin = lower_band3), alpha = 0.3) + 
+  geom_line(aes(x = kfn$x, y = kfn$y)) + 
+  theme(text = element_text(size=20)) +
+  theme_classic() + xlab("Distance") +
+  ylab("Kfn") + 
+  ggtitle(paste("lambda.c: ", lambda.c, "lambda.m: ", lambda.m, "\nstd2: ", round(std2,3)))
 
 # Does not seem to have any good effect.  We try to increase variance again. 
-lambda.m <- 7
-lambda.c <- 6.8
+lambda.m <- 8
+lambda.c <- 7.75
+std2 <- 3*std2
 n.rels <- 1000
-std2 <- 2*std2
 rels <- lapply(1:n.rels, function(seed) neumann_scot_generate(lambda.m = lambda.m, lambda.c = lambda.c, std2 = std2, seed = seed)$xs)
 rels <- lapply(rels, function(rel) list(x = rel[,1], y = rel[,2], area = D))
 kfns <- lapply(rels, function(rel) Kfn(rel, 1, k = 200))
 bands <- sapply(kfns, function(kfn) kfn$y)
-lower_band <- apply(bands, 1, function(x) quantile(x, probs = 0.05))
-upper_band <- apply(bands, 1, function(x) quantile(x, probs = 0.95))
+lower_band4 <- apply(bands, 1, function(x) quantile(x, probs = 0.05))
+upper_band4 <- apply(bands, 1, function(x) quantile(x, probs = 0.95))
 mid_band <- apply(bands, 1, function(x) quantile(x, probs = 0.5))
 
-ggplot() + geom_ribbon(aes(x = kfn$x, ymax = upper_band, ymin = lower_band), alpha = 0.3) + geom_line(aes(x = kfn$x, y = kfn$y))
+p4 <-  ggplot() + geom_ribbon(aes(x = kfn$x, ymax = upper_band4, ymin = lower_band4), alpha = 0.3) + 
+  geom_line(aes(x = kfn$x, y = kfn$y)) + 
+  theme(text = element_text(size=20), legend.title = element_blank()) +
+  theme_classic() + xlab("Distance") +
+  ylab("Kfn") + 
+  ggtitle(paste("lambda.c: ", lambda.c, "lambda.m: ", lambda.m, "\nstd2: ", round(std2,3)))
 
+ggarrange(p1, p2, p3, p4)
 
 # Display three realiations of the model with this parameters to what was observed (we overlay our grouping to the plots) : 
 df1 <- neumann_scot_generate(lambda.m = lambda.m, lambda.c = lambda.c, std2 = std2, seed = 1)
@@ -182,22 +204,45 @@ df3 <- as.data.frame(df3)
 colnames(df3) <- c("x", "y", "mothers")
 df3$mothers <- as.factor(df3$mothers)
 
+p0 <- ggplot(data = redwood) +
+  geom_point(aes(redwood$x,redwood$y)) + 
+  theme_classic() + 
+  xlab("x-coordinate") + 
+  ylab("y-coordinate") +
+  theme(text = element_text(size=20), legend.title = element_blank()) + 
+  ggtitle("Observed \nredwood data")
+
 p1 <- ggplot() +
   geom_point(aes(x= df3$x, y = df3$y, color = df3$mothers, shape = df3$mothers)) +
   theme_classic() + 
-  scale_shape_manual(values=1:nlevels(df3$mothers))
+  scale_shape_manual(values=1:nlevels(df3$mothers)) + 
+  xlab("x-coordinate") + 
+  ylab("y-coordinate") +
+  theme(text = element_text(size=20), legend.title = element_blank()) + 
+  ggtitle("Simulation a)")
+
 
 p2 <- ggplot() +
   geom_point(aes(x= df2$x, y = df2$y, color = df2$mothers, shape = df2$mothers)) +
   theme_classic() + 
-  scale_shape_manual(values=1:nlevels(df2$mothers))
+  scale_shape_manual(values=1:nlevels(df2$mothers))  + 
+  xlab("x-coordinate") + 
+  ylab("y-coordinate") +
+  theme(text = element_text(size=20), legend.title = element_blank()) + 
+  ggtitle("Simulation b)")
+
 
 p3 <- ggplot() +
   geom_point(aes(x= df1$x, y = df1$y, color = df1$mothers, shape = df1$mothers)) +
   theme_classic() + 
-  scale_shape_manual(values=1:nlevels(df1$mothers))
+  scale_shape_manual(values=1:nlevels(df1$mothers))  + 
+  xlab("x-coordinate") + 
+  ylab("y-coordinate") +
+  theme(text = element_text(size=20), legend.title = element_blank()) + 
+  ggtitle("Simulation c)")
 
 
+ggarrange(p0, p1,p2,p3, nrow = 2, ncol = 2)
 
 
 # Problem 4
