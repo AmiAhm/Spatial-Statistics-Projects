@@ -1,0 +1,37 @@
+---
+title: "Project 3 - Spatial"
+author: "Amir Ahmed"
+date: "11 4 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(ggplot2)
+library(geoR)
+```
+
+
+```{r}
+seismic <- read.csv("seismic.dat", header = F)
+seismic <- as.data.frame(seismic)
+names(seismic) <- c("d")
+seismic$x <- 0:(nrow(seismic)-1) %/% 75 + 1
+seismic$y <- 0:(nrow(seismic)-1)%% 75 + 1
+
+
+complit <- read.csv("complit.dat")
+
+```
+
+
+```{r}
+# Figure 1
+
+topo.li <- interp(seismic$x, seismic$y, seismic$d)
+image.plot(topo.li, main = "Display of seismic data, LD", horizontal = T, legend.lab = "d")
+contour(topo.li,add=T)
+
+```
+
