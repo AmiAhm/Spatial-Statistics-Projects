@@ -67,7 +67,7 @@
 	 	p(\vect d | \vect l) = \prod_{i=1}^{n}p(d_i | l_i) = \prod_{i=1}^{n}  \phi(d_i |\mu = 0.02 + 0.06l_i, \sigma^2 = 0.06^2)
 	 \end{equation} 
 	 
-	 \begin{figure}[H]	
+	 \begin{figure}[h]	
 	 	\begin{center} 
 	 		\includegraphics[scale=0.45]{figure1.png}
 	 	\end{center}
@@ -123,7 +123,7 @@
 		Var(l_i | d_i) = p_i(1-p_i)
 	\end{equation}
 	
-	\begin{figure}[H]	
+	\begin{figure}[h]	
 		\begin{center} 
 			\includegraphics[scale=0.48]{figure2.png}
 		\end{center}
@@ -143,7 +143,7 @@
 	\begin{equation}
 		\hat l_i = \begin{cases}
 		0, \text{ if } p_i < 0.5 \\
-		0, \text{ if } p_i \geq 0.5
+		1, \text{ if } p_i \geq 0.5
 		\end{cases}
 	\end{equation}
 	Is a MMAP solution. 
@@ -202,7 +202,7 @@
 	\end{equation}
 	Let $n_i$ be the neighborhood around the ith node. Then have:
 	\begin{equation}
-		p(l_i, \vect d | \vect l_{-i}) = \dfrac{\prod_{<i, j> \in n_i}\beta^{I(l_i = l_j)}}{\prod_{<i, j> \in n_i}\beta^{I(0 = l_j)} + \prod_{<i, j> \in n_i}\beta^{I(1 = l_j)}} 	\prod_{i=1}^{n}  \phi(d_i |\mu = 0.02 + 0.06l_i, \sigma^2 = 0.06^2) 
+		p(l_i, \vect d | \vect l_{-i}) = \dfrac{\prod_{l_j \in n_i}\beta^{I(l_i = l_j)}}{\prod_{l_j \in n_i}\beta^{I(0 = l_j)} + \prod_{l_j \in n_i}\beta^{I(1 = l_j)}} 	\prod_{i=1}^{n}  \phi(d_i |\mu = 0.02 + 0.06l_i, \sigma^2 = 0.06^2) 
 	\end{equation} 
 	as the Markov formulation. 
 	
@@ -210,9 +210,48 @@
 	\begin{equation}
 		\begin{split}
 		p(l_i | \vect d, \vect l_{-i}) &= p(l_i | d_i, l_{j}, j \in n_i) 
-		\\ &= \dfrac{p(d_i | l_i)\prod_{<i, j> \in n_i}\beta^{I(l_i = l_j)}}{\phi(d_i|\mu = 0.02, \sigma^2 = 0.06^2)\prod_{<i, j> \in n_i}\beta^{I(l_j = 0)} + \phi(d_i|\mu = 0.08, \sigma^2 = 0.06^2)\prod_{<i, j> \in n_i}\beta^{I(l_j = 1)}} 
+		\\ &= \dfrac{p(d_i | l_i)\prod_{l_j \in n_i}\beta^{I(l_i = l_j)}}{\phi(d_i|\mu = 0.02, \sigma^2 = 0.06^2)\prod_{l_j \in n_i}\beta^{I(l_j = 0)} + \phi(d_i|\mu = 0.08, \sigma^2 = 0.06^2)\prod_{l_j \in n_i}\beta^{I(l_j = 1)}} 
 		\end{split}		
 	\end{equation} 
 	
-	We now display the observations in $D_c$
+
+	
+	\begin{figure}[h]	
+		\begin{center} 
+			\includegraphics[scale=0.48]{figure5.png}
+		\end{center}
+		\caption{Display of observed data in $D_c$ }
+		\label{fig:1c1} 
+	\end{figure}
+
+	We now display the observations in $D_c$ in Figure \ref{fig:1c1}.
+	
+	Now want to use these observations to estimate $\beta$ by a maximum pseudo-likelihood procedure. In a optimal solution we would use the assumed $p(\vect l)$ distribution to do this, however we would need $2^n$ calculations to evaluate the normalizing constant, which in our case is infeasible. We rather use the Markov formulation to create an approximation.  (here $\vect d \in \mathbb{L}^n$)
+	
+	\begin{equation} \label{eq:ising}
+		p(\vect d | \beta ) \approx \hat p(\vect d | \beta) = const \times \prod_{i = 1}^{n}\sum_{\lbrace l_i', l_j | l_j \in n_i \rbrace \in L }  \prod_{l_j = l_i, l_j \in n_i}p(d_j | l_j')p(l_i'|l_j')
+	\end{equation}
+	
+
+	
+	As we assume the observations to be exact the model reduces as:
+	\begin{equation}
+		p(\vect d | \vect l) = \prod_{i \in \mathbb{L}}p(d_i | l_i) \rightarrow \delta_{d_i}(l_i) = \begin{cases}
+		1, l_i = d_i \\ 
+		0, \text{ else}
+		\end{cases}
+	\end{equation} 
+	
+	This reduces \eqref{eq:ising} to: 
+	\begin{equation}
+		\hat p(\vect d | \beta) \propto \prod_{i = 1}^n p(d_i|l_j; l_j \in n_i; \beta) = \prod_{i=1}^{n}\dfrac{\beta^{\sum_{l_j \in n_i}I(l_i = l_j)}}{\beta^{\sum_{l_j \in n_i}I(0 = l_j)} + \beta^{\sum_{l_j \in n_i}I(1 = l_j)}}
+	\end{equation}
+	
+	A good estimation of $\beta$ would be to maximize the above giving:
+	\begin{equation}
+		\hat \beta = \text{argmax}_\beta \sum_{i=1}^{n} \left\{ \left( \sum_{l_j \in n_i}I(l_i = l_j)\right)\log\beta - \log\left(\beta^{\sum_{l_j \in n_i}I(0 = l_j)} + \beta^{\sum_{l_j \in n_i}I(1 = l_j)}\right) \right\}
+	\end{equation}
+	
+	Using the Optim function in R this value can be easily found. 
+
 \end{document}
