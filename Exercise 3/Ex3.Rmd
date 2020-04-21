@@ -115,8 +115,6 @@ plot.map <- function(df, title = "Dc"){
   colnames(data) <- c("x", "y", "l")
   topo.li <- interp(data$x, data$y, data$l)
   image(topo.li, main = title, nlevel = 2, col = c("#F7F396", "purple"))
-
-
 }
 par(oma = c(4, 1, 1, 1))
 par(mfrow=c(1,1))
@@ -373,16 +371,50 @@ res <- res.rand$stored.ls[-(1:50)]
 load("df.RData")
 
 
-p1 <- ggplot(df)+ geom_line(aes(x = dist, y = avg.diff)) + theme_classic() + xlab("Iteration differnce") + ylab("Average amoount of differing cells in map") + ggtitle("All iteration differences")
-p2 <- ggplot(df)+ geom_line(aes(x = dist, y = avg.diff)) + xlim(c(0,100)) + theme_classic()+ xlab("Iteration difference") + ylab("Average amoount of differing cells in map") + ggtitle("0-100 iteration difference")
+p1 <- ggplot(df)+ geom_line(aes(x = dist, y = avg.diff)) + theme_classic() + xlab("Iteration differnce") + ylab("Average amount of different cells in map") + ggtitle("All iteration differences")
+p2 <- ggplot(df)+ geom_line(aes(x = dist, y = avg.diff)) + xlim(c(0,100)) + theme_classic()+ xlab("Iteration difference") + ylab("Average amount of different cells in map") + ggtitle("0-100 iteration difference")
 p <- ggarrange(p1, p2, ncol = 2, nrow = 1)
 annotate_figure(p,
                 top = text_grob("Visualizing sample difference after n-iterations", color = "black", face = "bold", size = 14))
+
+
+# Keep every 50th  for independence
+res <- res[(1:length(res))[1:length(res) %% 50 == 0]]
+
+# number of independent samples:
+m <- length(res)
+P <- Reduce("+", res)
+P <- P/m
+P <- as.vector(P) # row then columns
+
+df <- as.data.frame(P)
+names(df) <- c("p")
+df$x <- 0:(nrow(seismic)-1) %/% 75 + 1
+df$y <- 0:(nrow(seismic)-1)%% 75 + 1
+df$var <- df$p*(1-df$p)
+df$mmap <- df$p >= 0.5 
+df$mmap <- as.numeric(df$mmap)
+
+par(mfrow=c(3,1), mar = c(2,2,2,2))
+topo.li <- interp(df$x, df$y, df$p)
+image.plot(topo.li, main = "Expectance, LD", horizontal = F, legend.lab = "Expectance")
+contour(topo.li,add=T)
+
+topo.li <- interp(seismic$x, seismic$y, df$var)
+image.plot(topo.li, main = "Variance, LD", horizontal = F, legend.lab = "Variance")
+contour(topo.li,add=T)
+ 
+
+topo.li <- interp(seismic$x, seismic$y, df$mmap)
+image(topo.li, main = "MMAP", nlevel = 2, col = c("#F7F396", "purple"))
+legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
+    0), bty = "n", fill = c("#F7F396", "purple"), cex = 2)
+
+par(mfrow=c(1,1))
+
 ```
 
-```{r}
 
-```
 
 
 
