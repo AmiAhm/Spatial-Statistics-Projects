@@ -10,6 +10,14 @@ editor_options:
 ```{r}
 library(ggplot2)
 library(geoR)
+library(fields)
+library(akima)
+library(ggpubr)
+set.seed(123)
+
+par()
+opar <- par()
+
 ```
 
 
@@ -21,7 +29,7 @@ seismic$x <- 0:(nrow(seismic)-1) %/% 75 + 1
 seismic$y <- 0:(nrow(seismic)-1)%% 75 + 1
 
 
-complit <- read.csv("complit.dat")
+complit <- read.csv("complit.dat", sep = " ")
 
 ```
 
@@ -31,6 +39,7 @@ complit <- read.csv("complit.dat")
 topo.li <- interp(seismic$x, seismic$y, seismic$d)
 image.plot(topo.li, main = "Display of seismic data, LD", horizontal = T, legend.lab = "d")
 contour(topo.li,add=T)
+par(mfrow=c(1,1))
 
 ```
 
@@ -41,6 +50,7 @@ pi <- dnorm(seismic$d, mean = 0.08, sd = 0.06)/(dnorm(seismic$d, mean = 0.02, sd
 topo.li <- interp(seismic$x, seismic$y, pi)
 image.plot(topo.li, main = "Display of probabilies, LD", horizontal = T, legend.lab = "p")
 contour(topo.li,add=T)
+par(mfrow=c(1,1))
 
 ```
 
@@ -62,6 +72,7 @@ par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
     0), bty = "n", fill = c("#F7F396", "purple"), cex = 2)
+par(mfrow=c(1,1))
 
 ```
 
@@ -87,7 +98,292 @@ image(topo.li, main = "MMAP", nlevel = 2, col = c("#F7F396", "purple"))
 legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
     0), bty = "n", fill = c("#F7F396", "purple"), cex = 2)
 
+par(mfrow=c(1,1))
 
 ```
+
+```{r}
+# c)
+plot.map <- function(df, title = "Dc"){
+  data <- c()
+  for(i in 1:nrow(df)){
+    for(j in 1:ncol(df)){
+     data <- rbind(data, c(i, j, df[i,j])) 
+    }
+  }
+  data <- as.data.frame(data)
+  colnames(data) <- c("x", "y", "l")
+  topo.li <- interp(data$x, data$y, data$l)
+  image(topo.li, main = title, nlevel = 2, col = c("#F7F396", "purple"))
+
+
+}
+par(oma = c(4, 1, 1, 1))
+par(mfrow=c(1,1))
+plot.map(complit)
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
+    0), bty = "n", fill = c("#F7F396", "purple"), cex = 2)
+
+
+```
+
+```{r}
+# Pseudo likelihood 
+mmpl <- function(d, beta){
+  res <- 0
+  for(i in 1:nrow(d)){
+    for(j in 1:ncol(d)){
+      li <- d[i, j]
+      ns <- c()
+      if(i != 0){
+        ns <- c(ns, d[i-1,j])
+      }
+      
+      if(i != nrow(d)){
+        ns <- c(ns, d[i+1,j])
+      }
+      
+      
+      if(j != 0){
+        ns <- c(ns, d[i,j-1])
+      }
+      
+      if(j != ncol(d)){
+        ns <- c(ns, d[i,j+1])
+      }
+      
+      ns <- unlist(ns)
+      lj.eq.to.li <- sapply(ns, function(lj) li == lj)
+      lj.eq.to.0 <- sapply(ns, function(lj) 0 == lj)
+      lj.eq.to.1 <- sapply(ns, function(lj) 1 == lj)
+      
+      res <- res + sum(lj.eq.to.li)*log(beta) - log(beta^(sum(lj.eq.to.0))+beta^(sum(lj.eq.to.1)))
+    }
+  }
+  res
+}
+
+mmpl.vec <- function(d, bs){
+  sapply(bs, function(b) mmpl(d = d, beta = b))
+}
+
+# Finding best estiamte using optim
+opt.res <- optim(fn = function(bs) mmpl.vec(complit, bs),
+      par = c(3),
+      lower = c(1),
+      upper = c(Inf),
+      control=list(fnscale=-1),
+      method = "L-BFGS-B")
+
+
+```
+
+```{r}
+
+# Set start beta parameter
+beta <- opt.res$par
+# Calcukate probability of li being 1
+pl.li.1.given.ns <- function(ns, di) {
+  lj.eq.to.0 <- sapply(ns, function(lj) 0 == lj)
+  lj.eq.to.1 <- sapply(ns, function(lj) 1 == lj)
+  
+  dnorm(di, mean = 0.08, sd = 0.06) *
+    beta^(sum(lj.eq.to.1))/
+    (beta^(sum(lj.eq.to.1))*dnorm(di, mean = 0.08, sd = 0.06)+
+       beta^(sum(lj.eq.to.0))*dnorm(di, mean = 0.02, sd = 0.06))
+}
+
+## Gibbssampler
+# Sample from a cell
+single.step.cell <- function(i, j, l, d){
+  di <- d[i, j]
+  li <- l[i, j]
+  
+  
+  ns <- c()
+  if(i != 0){
+    ns <- c(ns, l[i-1,j])
+  }
+  
+  if(i != nrow(l)){
+    ns <- c(ns, l[i+1,j])
+  }
+  
+  
+  if(j != 0){
+    ns <- c(ns, l[i,j-1])
+  }
+  
+  if(j != ncol(l)){
+    ns <- c(ns, l[i,j+1])
+  }
+  
+  # Chance translate to 1 
+  p <- pl.li.1.given.ns(ns, di)
+  li.next <- rbinom(n = 1, size = 1, prob = p)
+  
+  l[i, j] <- li.next
+  return(l)
+}
+
+# Sweep a single time
+single.step <- function(l, d){
+  for(i in 1:nrow(l)){
+    for(j in 1:ncol(l)){
+      i <- sample(nrow(l), size = 1)
+      j <- sample(ncol(l), size = 1)
+      l <- single.step.cell(i, j, l, d)
+    }
+  }
+  
+  return(l)
+}
+
+d <- matrix(NA, nrow = 75, ncol = 75)
+
+for(i in 1:nrow(seismic)){
+  d[seismic[i,]$x,seismic[i,]$y] <- seismic[i,]$d
+}
+
+m <- 250
+# Sweep m times
+gibbs.sampler <- function(l, m, d){
+  ls <- c()
+  for(q in 1:m){
+    print(q)
+    l <- single.step(l, d)
+    ls <- c(ls, sum(l))
+  }
+  list(l = l, ls = ls)
+}
+
+
+
+# Run m steps with different initial values
+# ALl 1
+ # l <- matrix(1, nrow = 75, ncol = 75)
+ # res1 <- gibbs.sampler(l, m, d)
+ # 
+  # Store number of ls in each step, in data frame
+# res <- res1$ls 
+# all.res <- as.data.frame(res)
+# all.res$x <- 1:m
+# all.res$l <- "All 1"
+# # All 0
+# l <- matrix(0, nrow = 75, ncol = 75)
+# res0 <- gibbs.sampler(l, m, d)
+# # Add number of ls in each step, in data frame
+# res <- res0$ls
+# temp.res <- as.data.frame(res)
+# temp.res$x <- 1:m
+# temp.res$l <- "All 0"
+# all.res <- rbind(all.res, temp.res)
+# # Random with 0.5 probabilit
+# set.seed(123)
+# l <- matrix(rbinom(prob = 0.5, n = 75*75, size = 1), nrow = 75, ncol = 75)
+# res.rand <- gibbs.sampler(l, m, d)
+# # Add number of ls in each step, in data frame
+# res <- res.rand$ls
+# temp.res <- as.data.frame(res)
+# temp.res$x <- 1:m
+# temp.res$l <- "Random matrix"
+# all.res <- rbind(all.res, temp.res)
+# Save results
+#save(all.res, file = "gibbsinitials.RData")
+# Load results, uncomment above if you like to watch paint dry 
+load(file = "gibbsinitials.RData")
+
+all.res$l <- as.factor(all.res$l)
+all.res$res <- all.res$res/(75*75)
+ggplot(all.res) + geom_line(aes(x = x, y = res, color = l), size = 0.9) + theme_classic() + 
+  ylab("Percentage with li = 1") + 
+  xlab("Number of steps from initial") + 
+  ggtitle("Convergnce w/ different initial, percentage li = 1")
+
+# Starting with random 50-50 seems to have converged fastes, so set burnin to 50, and generate some more samples. This time storing all results
+
+# Sweep m times and store
+m <- 2500
+storing.gibbs.sampler <- function(l, m, d){
+  ls <- c()
+  stored.ls <- list()
+  for(q in 1:m){
+    print(q)
+    l <- single.step(l, d)
+    ls <- c(ls, sum(l))
+    stored.ls <- c(stored.ls, list(l))
+  }
+  list(l = l, ls = ls, stored.ls = stored.ls)
+}
+set.seed(123)
+l <- matrix(rbinom(prob = 0.5, n = 75*75, size = 1), nrow = 75, ncol = 75)
+
+# Only run this if you have serious amount of time
+#res.rand <- storing.gibbs.sampler(l, m, d)
+#save(res.rand, file = "res_rand.RData")
+load("res_rand.RData")
+# set burning
+burnin <- 50 
+
+# Find distance to last
+par(oma = c(4, 1, 1, 1))
+par(mfrow=c(1,2), mar = c(1, 1, 1, 1))
+plot.map(res.rand$stored.ls[[1]], "Gibbs: Initial iteration")
+plot.map(res.rand$stored.ls[[2500]], "Gibbs: Last iteration")
+par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
+    0), bty = "n", fill = c("#F7F396", "purple"), cex = 2)
+par(opar)
+
+
+#Remove burnin:
+res <- res.rand$stored.ls[-(1:50)]
+
+# Dont run this, it is slow
+# different.df <- c()
+# for(i in 1:length(res)){
+#   print(i)
+#   for(j in 1:length(res)){
+#     if(i == j){
+#       next()
+#     }
+#     
+#     num.different <- res[[i]] - res[[j]]
+#     num.different <- abs(num.different)
+#     num.different <- sum(num.different)
+#     different.df <- rbind(different.df, c(num.different, abs(i-j))) 
+#   }
+#   
+#   if(i %% 10 == 0){
+#     write.table(different.df, "myDF.csv", sep = ",", col.names = !file.exists("myDF.csv"), append = T)
+#     different.df <- c()
+#   }
+#   
+# }
+# 
+# df <- read.csv("myDF.csv")
+# library(dplyr)
+# head(df)
+# colnames(df) <- c("index", "num.diff", "dist")
+# df <- df %>% group_by(dist) %>% summarise(avg.diff = mean(num.diff)) 
+# save(df, file = "df.RData")
+load("df.RData")
+
+
+p1 <- ggplot(df)+ geom_line(aes(x = dist, y = avg.diff)) + theme_classic() + xlab("Iteration differnce") + ylab("Average amoount of differing cells in map") + ggtitle("All iteration differences")
+p2 <- ggplot(df)+ geom_line(aes(x = dist, y = avg.diff)) + xlim(c(0,100)) + theme_classic()+ xlab("Iteration difference") + ylab("Average amoount of differing cells in map") + ggtitle("0-100 iteration difference")
+p <- ggarrange(p1, p2, ncol = 2, nrow = 1)
+annotate_figure(p,
+                top = text_grob("Visualizing sample difference after n-iterations", color = "black", face = "bold", size = 14))
+```
+
+```{r}
+
+```
+
+
 
 
