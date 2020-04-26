@@ -34,9 +34,6 @@ set.seed(123)
 par()
 opar <- par()
 
-clab = 3
-cmain = 5
-caxis = 3
 
 ```
 
@@ -51,13 +48,11 @@ complit <- read.csv("complit.dat", sep = " ")
 
 ```
 
-Assume that we have observed seismic data over a domain $D \in \mathbb{R}^2$. We want to identify the underlying lithology distribution over D, the underlying lithology of a point is either sand or shale, $\lbrace 1, 0 \rbrace$ respectively.
+In this exercise, we study problems relating to Mosaic random fields (RF). We have observations of seismic data, denoted by $\lbrace d(\vect x); \vect x \in L \rbrace$ ;$d(\vect x) \in \mathbb{R} $, over a domain $\mathbf{D} \subset \mathbb{R}^2$. The seismic data is collected over a regular $(75 \times 75)$ grid $\mathbf{L}_\mathbf{D}$. 
 
-The observations have been collected on a regular $(75 \times 75)$ grid $L_d$, with seismic data being $\lbrace d(\vect x); \vect x \in L_d \rbrace$. Where $d(\vect x) \in \mathbb{R}$. 
+Moreover, we have observations of the lithology distribution $\{sand, shale\}$ in a geological comparable domain $\mathbf{D}_c \subset \mathbb{R}^2$. These are collected on a regular $(66 \times 66)$ grid $\mathbf{L}_{\mathbf{D}_c}$, which has the same spacing as $\mathbf{L}_\mathbf{D}$, over $\mathbf{D}_c$.
 
-We have observed the lithology distribution in a geologically comparable domain $D_c \in \mathbb{R}^2$. Assume that this was collected on a regular $(66 \times 66)$ grid $L_{D_c}$. 
-
-We assume that the underlying lithology distribution can be represented by a Mosaic RF $\lbrace l(\vect x); \vect x \in  L_D\rbrace, l(\vect x) \in \lbrace 0, 1 \rbrace$.  
+Let the underlying lithology distribution represented by a Mosaic RF be denoted by $\lbrace l(\vect x); \vect x \in L \rbrace ;l(\vect x) \in \{0,1 \}$. We want to identify the underlying lithology distribution over D, the underlying lithology of a point is either sand or shale, $\lbrace 1, 0 \rbrace$ respectively.
 
 
 ## Problem 1a) 
@@ -78,18 +73,17 @@ Where $\phi$ is the pdf of the normal distribution. As all observations are inde
 \end{equation} 
 
 
-```{r fig1a1, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1a1} Display of seismic data $L_D$.", fig.height=14, fig.width=14}
+```{r fig1a1, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1a1} Display of seismic data $L_D$.", fig.height=4, fig.width=4}
 # Figure 1
 
-clab = 2.5
-cmain = 2.5
-caxis = 2.5
-
-
-par(opar)
-topo.li <- interp(seismic$x, seismic$y, seismic$d)
-image.plot(topo.li, main = "Display of seismic data, LD", horizontal = T, legend.lab = "d", cex.lab=clab, cex.main =cmain, cex.axis=caxis, cex = 2)
-contour(topo.li,add=T)
+ggplot(seismic, aes(x=x, y=y))+
+  geom_raster(aes(fill= d))+
+  scale_fill_viridis_c(option="plasma")+
+  theme_bw()+
+  theme(aspect.ratio = 1)+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank())
 ```
 
 
@@ -98,19 +92,20 @@ We display the observations from $L_D$ as a map in Figure \ref{fig:1a1}, there s
 
 \subsection*{Problem 1b)}
 
-```{r fig1b1, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1b1} Display of probabilies", fig.height=14, fig.width=14}
-
-clab = 2.5
-cmain = 2.5
-caxis = 2.5
+```{r fig1b1, echo = FALSE, include=FALSE, fig.cap="\\label{fig:1b1} Display of probabilities", fig.height=4, fig.width=4}
 
 #1b
 # Calculating pi-s from data. 
 pi <- dnorm(seismic$d, mean = 0.08, sd = 0.06)/(dnorm(seismic$d, mean = 0.02, sd = 0.06) + dnorm(seismic$d, mean = 0.08, sd = 0.06))
-topo.li <- interp(seismic$x, seismic$y, pi)
-image.plot(topo.li, main = "Display of probabilies, LD", horizontal = T, legend.lab = "p", cex.lab=clab, cex.main =cmain, cex.axis=caxis, cex = 2)
-contour(topo.li,add=T)
-par(mfrow=c(1,1))
+new_data <- data.frame(x=seismic$x, y=seismic$y, pi)
+ggplot(new_data, aes(x=x, y=y))+
+  geom_raster(aes(fill= pi))+
+   scale_fill_viridis_c(option="plasma")+
+  theme_bw()+
+  theme(aspect.ratio = 1)+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank())
 
 ```
 
@@ -160,33 +155,28 @@ Var(l_i | d_i) = p_i(1-p_i)
 \end{equation}
 
 
-```{r fig1b2, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1b2} Display of six posterior realizations of $L_D$.", fig.height=25, fig.width=20}
+```{r fig1b2, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1b2} Display of six posterior realizations of $L_D$.", fig.height=8, fig.width=8}
 
-clab = 3.5
-cmain = 3.5
-caxis = 3.5
-
-par(oma = c(5, 2, 2, 2))
 
 simulate.unif <- function(){
   sapply(pi, function(p) rbinom(n = 1, size = 1, prob = p))
 }
-
-par(mfrow=c(3,2))
+gg <- list()
 set.seed(1)
 for(i in 1:6){
   sim.res <- simulate.unif()
-  topo.li <- interp(seismic$x, seismic$y, sim.res)
-  image(topo.li, nlevel = 2, main = paste0("Simulation ", i), col = c("#F7F396", "purple"), cex.lab=clab, cex.main =cmain, cex.axis=caxis)
+  dat <- data.frame(x=seismic$x,y= seismic$y, z=sim.res)
+gg[[i]] <-ggplot(dat, aes(x=y, y=x, fill= factor(z)))+
+  geom_raster() +
+  theme_bw()+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank()) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(aspect.ratio = 1)+
+   scale_fill_manual(breaks = levels(factor(dat$z)),
+                    values = c("#F7F396", "purple"), labels=c("sand", "shale")) 
 }
-par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
-plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
-    0), bty = "n", fill = c("#F7F396", "purple"), cex = 5)
-par(mfrow=c(1,1))
-par(opar)
-
-
+ggarrange(gg[[1]],gg[[2]], gg[[3]], gg[[4]], gg[[5]], gg[[6]], nrow=2, ncol=3, common.legend = TRUE, legend = "bottom")
 ```
 
 
@@ -204,44 +194,54 @@ Due to the conditional independence of the points we see:
 1, \text{ if } p_i \geq 0.5
 \end{cases}
 \end{equation}
-Is a MMAP solution. 
+is a MMAP solution. 
 
 
-```{r fig1b3, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1b3} Plot of MMAP, expected values and variance with uniform prior", fig.height=25, fig.width=12}
+```{r fig1b3, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1b3} Plot of MMAP, expected values and variance with uniform prior", fig.height=6, fig.width=6}
 
-clab = 2
-cmain = 4
-caxis = 2
 
 # IB MMAP expectance and variance.
 ex <- pi 
 var <- pi*(1-pi)
 MMAP <- pi >= 0.5
 MMAP <- as.numeric(MMAP)
-par(oma = c(4, 1, 1, 1))
 
-par(mfrow=c(3,1))
-topo.li <- interp(seismic$x, seismic$y, ex)
-image.plot(topo.li, main = "Expectance, LD", horizontal = F, legend.lab = "Expectance", cex.lab=clab, cex.main =cmain, cex.axis=caxis)
-contour(topo.li,add=T)
+dat1 <- data.frame(x=seismic$x, y=seismic$y, z=ex)
+ggg1 <- ggplot(dat1, aes(x=x, y=y))+
+  geom_raster(aes(fill= z))+
+   scale_fill_viridis_c(option="plasma")+
+  theme_bw()+
+  theme(aspect.ratio = 1)+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank())+
+  ggtitle("E(l|d)")
 
-topo.li <- interp(seismic$x, seismic$y, var)
-image.plot(topo.li, main = "Variance, LD", horizontal = F, legend.lab = "Variance", cex.lab=clab, cex.main =cmain, cex.axis=caxis)
-contour(topo.li,add=T)
+dat2 <- data.frame(x=seismic$x, y=seismic$y, z=var)
+ggg2 <- ggplot(dat2, aes(x=x, y=y))+
+  geom_raster(aes(fill= z))+
+   scale_fill_viridis_c(option="plasma")+
+  theme_bw()+
+  theme(aspect.ratio = 1)+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank())+
+  ggtitle("Var(l|d)")
  
 
-topo.li <- interp(seismic$x, seismic$y, MMAP)
-image(topo.li, main = "MMAP", nlevel = 2, col = c("#F7F396", "purple"), cex.lab=clab, cex.main =cmain, cex.axis=caxis)
+dat3 <- data.frame(x=seismic$x,y= seismic$y, z=MMAP)
+ggg3 <-ggplot(dat, aes(x=y, y=x, fill= factor(z)))+
+  geom_raster() +
+  theme_bw()+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank()) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(aspect.ratio = 1)+
+   scale_fill_manual(breaks = levels(factor(dat$z)),
+                    values = c("#F7F396", "purple"), labels=c("sand", "shale"))+
+  ggtitle("MMAP")
 
-par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
-
-plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-
-legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
-    0), bty = "n", fill = c("#F7F396", "purple"), cex = 5)
-
-par(mfrow=c(1,1))
-
+ggarrange(ggg1, ggg2, ggg3, nrow=2, ncol=2)
 ```
 
 We plot MMAP solution, expectance and variance in Figure \ref{fig:1b3}. We see that there is relatively high variance is most parts of the map, this is reflected in the large difference we see between the simulations. From both the expected value and the $MMAP$ we see that there is one large spot (top-right) where we expect a large cluster of shale as with some bands of shale on mid-left. This is somewhat reflected in the simulations. A difference betweeen MMAP and the simulations is that the simulations tend to expect more shale than the MMAP. The map of the expected values seems to be closer to the simulations than the MMAP. The MMAP result seems much less noisy. 
@@ -308,13 +308,8 @@ Now want to develop expressions for the posterior model  $p(l_i | \vect d, \vect
 as the Markov formulation. 
 
 
-```{r fig1c1, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1c1}Display of observed data in $D_c$", fig.height=5, fig.width=5}
+```{r fig1c1, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1c1}Display of observed data in $D_c$", fig.height=4, fig.width=4}
 # c)
-clab = 1
-cmain = 1
-caxis = 1
-
-
 plot.map <- function(df, title = "Dc"){
   data <- c()
   for(i in 1:nrow(df)){
@@ -324,17 +319,18 @@ plot.map <- function(df, title = "Dc"){
   }
   data <- as.data.frame(data)
   colnames(data) <- c("x", "y", "l")
-  topo.li <- interp(data$x, data$y, data$l)
-  image(topo.li, main = title, nlevel = 2, col = c("#F7F396", "purple"), cex.lab=clab, cex.main = cmain, cex.axis=caxis)
+  ggplot(data, aes(x=y, y=x, fill= factor(l)))+
+  geom_raster() +
+  theme_bw()+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank()) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(aspect.ratio = 1)+
+   scale_fill_manual(breaks = levels(factor(dat$z)),
+                    values = c("#F7F396", "purple"), labels=c("sand", "shale"))
 }
-par(oma = c(1, .5, .5, .5))
-par(mfrow=c(1,1))
-plot.map(complit)
-par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
-plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
-    0), bty = "n", fill = c("#F7F396", "purple"), cex = 1)
 
+plot.map(complit)
 ```
 
 
@@ -568,14 +564,13 @@ all.res$l <- as.factor(all.res$l)
 all.res$res <- all.res$res/(75*75)
 ```
 
-```{r fig1c22, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1c22} Percentage equality of samples compared to sample distance", fig.height=5, fig.width=5}
+```{r fig1c22, echo = FALSE, include=TRUE, fig.cap="\\label{fig:1c22} Display of the proportion of shale using different initial values after 250 iterations.", fig.height=5, fig.width=7}
 
 all.res$`Start value` <- all.res$l
 ggplot(all.res) + geom_line(aes(x = x, y = res, color = `Start value`), size = 0.9) + theme_classic() + 
   ylab("Percentage with li = 1") + 
   xlab("Number of steps from initial") + 
-  ggtitle("Convergence: Percentage li = 1") +
-  theme(text = element_text(size = 14))
+  theme(text = element_text(size = 10))
 
 # Starting with random 50-50 seems to have converged fastes, so set burnin to 50, and generate some more samples. This time storing all results
 ```
@@ -605,21 +600,16 @@ load("res_rand.RData")
 burnin <- 50 
 ```
 
-```{r fig1c2, echo = FALSE, include=TRUE, fig.cap="\\label{fig:c2} Gibbs sampler initial and last iteration, 2500 steps.", fig.height=8, fig.width=15}
+```{r fig1c2, echo = FALSE, include=TRUE, fig.cap="\\label{fig:c2} Six realisations from the MCMC/Gibbs algorithm.", fig.height=8, fig.width=8}
 # Find distance to last
-clab = 2.5
-cmain = 2.5
-caxis = 2.5
+p1 <- plot.map(res.rand$stored.ls[[100]], "Gibbs: Initial iteration")
+p2 <- plot.map(res.rand$stored.ls[[500]], "Gibbs: Initial iteration")
+p3 <- plot.map(res.rand$stored.ls[[1000]], "Gibbs: Initial iteration")
+p4 <- plot.map(res.rand$stored.ls[[1500]], "Gibbs: Initial iteration")
+p5 <- plot.map(res.rand$stored.ls[[2000]], "Gibbs: Initial iteration")
+p6 <- plot.map(res.rand$stored.ls[[2500]], "Gibbs: Initial iteration")
 
-par(oma = c(4, 1, 1, 1))
-par(mfrow=c(1,2), mar = c(3, 3, 3, 3))
-plot.map(res.rand$stored.ls[[1]], "Gibbs: Initial iteration")
-plot.map(res.rand$stored.ls[[2500]], "Gibbs: Last iteration")
-par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
-plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
-    0), bty = "n", fill = c("#F7F396", "purple"), cex = 2.2)
-par(opar)
+ggarrange(p1,p2,p3,p4,p5,p6, nrow=2, ncol=3, common.legend = TRUE, legend = "bottom")
 ```
 
 
@@ -721,27 +711,43 @@ Using our independent samples we have following estimator:
 \end{equation}
 
 
-```{r fig1c4, echo = FALSE, include=TRUE, fig.cap="\\label{fig:c4} Estimators from independent gibbs sample", fig.height=25, fig.width=15}
-clab = 3.5
-cmain = 3.5
-caxis = 3.5
+```{r fig1c4, echo = FALSE, include=TRUE, fig.cap="\\label{fig:c4} Estimators from independent gibbs sample", fig.height=6, fig.width=6}
+dat4 <- data.frame(x=df$x, y=df$y, z=df$p)
+ggg1 <- ggplot(dat4, aes(x=x, y=y))+
+  geom_raster(aes(fill= z))+
+   scale_fill_viridis_c(option="plasma")+
+  theme_bw()+
+  theme(aspect.ratio = 1)+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank())+
+  ggtitle("E(l|d)")
 
-par(mfrow=c(3,1), mar = c(7.5,2.5,2.5,2.5))
-topo.li <- interp(df$x, df$y, df$p)
-image.plot(topo.li, main = "Expectance, LD", horizontal = F, legend.lab = "Expectance", cex.lab=clab, cex.main =cmain, cex.axis=caxis, cex = 2)
-contour(topo.li,add=T)
-
-topo.li <- interp(seismic$x, seismic$y, df$var)
-image.plot(topo.li, main = "Variance, LD", horizontal = F, legend.lab = "Variance", cex.lab=clab, cex.main =cmain, cex.axis=caxis, cex = 2)
-contour(topo.li,add=T)
+dat5 <- data.frame(x=seismic$x,y= seismic$y,z= df$var)
+ggg2 <- ggplot(dat5, aes(x=x, y=y))+
+  geom_raster(aes(fill= z))+
+   scale_fill_viridis_c(option="plasma")+
+  theme_bw()+
+  theme(aspect.ratio = 1)+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank())+
+  ggtitle("Var(l|d)")
  
 
-topo.li <- interp(seismic$x, seismic$y, df$mmap)
-image(topo.li, main = "MMAP", nlevel = 2, col = c("#F7F396", "purple"), cex.lab=clab, cex.main =cmain, cex.axis=caxis, cex = 2)
-legend("bottom", c("Sand", "Shale"), xpd = TRUE, horiz = TRUE, inset = c(0, 
-    0), bty = "n", fill = c("#F7F396", "purple"), cex = 4)
+dat6 <- data.frame(x=seismic$x, y=seismic$y, z=df$mmap)
+ggg3 <-ggplot(dat6, aes(x=y, y=x, fill= factor(z)))+
+  geom_raster() +
+  theme_bw()+
+  theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank()) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))+
+  theme(aspect.ratio = 1)+
+   scale_fill_manual(breaks = levels(factor(dat$z)),
+                    values = c("#F7F396", "purple"), labels=c("sand", "shale"))+
+  ggtitle("MMAP")
 
-par(mfrow=c(1,1))
+ggarrange(ggg1, ggg2, ggg3, nrow=2, ncol=2)
 
 ```
 
