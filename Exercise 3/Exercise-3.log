@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  26 APR 2020 15:28
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  27 APR 2020 11:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -517,8 +517,7 @@ Package: algorithmic 2009/08/24 v0.1 Document Style `algorithmic'
 \c@ALC@depth=\count125
 \ALC@tlm=\skip51
 \algorithmicindent=\skip52
-)
-No file Exercise-3.aux.
+) (./Exercise-3.aux)
 \openout1 = `Exercise-3.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 105.
@@ -608,6 +607,7 @@ Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 105.
 LaTeX Info: Redefining \pageref on input line 105.
 LaTeX Info: Redefining \nameref on input line 105.
+(./Exercise-3.out) (./Exercise-3.out)
 \@outlinefile=\write3
 \openout3 = `Exercise-3.out'.
 
@@ -642,56 +642,162 @@ e
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Font Info:    Try loading font information for OT1+lmr on input line 113.
+LaTeX Font Info:    Try loading font information for OT1+lmr on input line 112.
 
 (/usr/local/texlive/2019/texmf-dist/tex/latex/lm/ot1lmr.fd
 File: ot1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OML+lmm on input line 113.
+LaTeX Font Info:    Try loading font information for OML+lmm on input line 112.
 
 (/usr/local/texlive/2019/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 113
+LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 112
 .
 (/usr/local/texlive/2019/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMX+lmex on input line 113
+LaTeX Font Info:    Try loading font information for OMX+lmex on input line 112
 .
 (/usr/local/texlive/2019/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 113.
+(Font)              <10> on input line 112.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 113.
+(Font)              <7> on input line 112.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 113.
-LaTeX Font Info:    Try loading font information for U+msa on input line 113.
+(Font)              <5> on input line 112.
+LaTeX Font Info:    Try loading font information for U+msa on input line 112.
 (/usr/local/texlive/2019/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 ) (/usr/local/texlive/2019/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 113.
+LaTeX Font Info:    Try loading font information for U+msb on input line 112.
 (/usr/local/texlive/2019/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (/usr/local/texlive/2019/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
-! Missing $ inserted.
-<inserted text> 
-                $
-l.114 \in
-          \mathbb{R} \$, over a domain \(\mathbf{D} \subset \mathbb{R}^2\). 
-Here is how much of TeX's memory you used:
- 13600 strings out of 492616
- 202175 string characters out of 6129482
- 310839 words of memory out of 5000000
- 17335 multiletter control sequences out of 15000+600000
- 47482 words of font info for 54 fonts, out of 8000000 for 9000
- 1141 hyphenation exceptions out of 8191
- 36i,6n,38p,973b,299s stack positions out of 5000i,500n,10000p,200000b,80000s
+<Exercise-3_files/figure-latex/fig1a1-1.pdf, id=20, 270.00874pt x 208.78pt>
+File: Exercise-3_files/figure-latex/fig1a1-1.pdf Graphic file (type pdf)
+<use Exercise-3_files/figure-latex/fig1a1-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/fig1a1-1.pdf  used on in
+put line 151.
+(pdftex.def)             Requested size: 270.01219pt x 208.78264pt.
+[1
 
-!  ==> Fatal error occurred, no output PDF file produced!
+{/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+<Exercise-3_files/figure-latex/fig1b2-1.pdf, id=53, 565.11125pt x 526.96875pt>
+File: Exercise-3_files/figure-latex/fig1b2-1.pdf Graphic file (type pdf)
+<use Exercise-3_files/figure-latex/fig1b2-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/fig1b2-1.pdf  used on in
+put line 204.
+(pdftex.def)             Requested size: 469.76654pt x 438.05937pt.
+
+LaTeX Warning: Reference `fig:1b1' on page 2 undefined on input line 210.
+
+<Exercise-3_files/figure-latex/fig1b3-1.pdf, id=54, 414.54875pt x 376.40625pt>
+File: Exercise-3_files/figure-latex/fig1b3-1.pdf Graphic file (type pdf)
+<use Exercise-3_files/figure-latex/fig1b3-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/fig1b3-1.pdf  used on in
+put line 228.
+(pdftex.def)             Requested size: 414.56038pt x 376.4168pt.
+[2 <./Exercise-3_files/figure-latex/fig1a1-1.pdf>] [3 <./Exercise-3_files/figur
+e-latex/fig1b2-1.pdf>] [4 <./Exercise-3_files/figure-latex/fig1b3-1.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 263--264
+
+ []
+
+<Exercise-3_files/figure-latex/fig1c1-1.pdf, id=115, 270.00874pt x 209.78375pt>
+
+File: Exercise-3_files/figure-latex/fig1c1-1.pdf Graphic file (type pdf)
+<use Exercise-3_files/figure-latex/fig1c1-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/fig1c1-1.pdf  used on in
+put line 303.
+(pdftex.def)             Requested size: 270.00807pt x 209.78322pt.
+[5]
+Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
+put line 354.
+[6 <./Exercise-3_files/figure-latex/fig1c1-1.pdf>]
+<Exercise-3_files/figure-latex/fig1c22-1.pdf, id=146, 493.845pt x 352.31625pt>
+File: Exercise-3_files/figure-latex/fig1c22-1.pdf Graphic file (type pdf)
+<use Exercise-3_files/figure-latex/fig1c22-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/fig1c22-1.pdf  used on i
+nput line 376.
+(pdftex.def)             Requested size: 469.75291pt x 335.1286pt.
+<Exercise-3_files/figure-latex/fig1c2-1.pdf, id=147, 565.11125pt x 526.96875pt>
+
+File: Exercise-3_files/figure-latex/fig1c2-1.pdf Graphic file (type pdf)
+<use Exercise-3_files/figure-latex/fig1c2-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/fig1c2-1.pdf  used on in
+put line 383.
+(pdftex.def)             Requested size: 469.76654pt x 438.05937pt.
+
+LaTeX Warning: Reference `fig:c1' on page 7 undefined on input line 392.
+
+[7 <./Exercise-3_files/figure-latex/fig1c22-1.pdf>] [8 <./Exercise-3_files/figu
+re-latex/fig1c2-1.pdf>]
+<Exercise-3_files/figure-latex/fig1c3-1.pdf, id=192, 1074.0125pt x 493.845pt>
+File: Exercise-3_files/figure-latex/fig1c3-1.pdf Graphic file (type pdf)
+<use Exercise-3_files/figure-latex/fig1c3-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/fig1c3-1.pdf  used on in
+put line 409.
+(pdftex.def)             Requested size: 469.7482pt x 215.99637pt.
+<Exercise-3_files/figure-latex/fig1c4-1.pdf, id=194, 414.54875pt x 374.39874pt>
+
+File: Exercise-3_files/figure-latex/fig1c4-1.pdf Graphic file (type pdf)
+<use Exercise-3_files/figure-latex/fig1c4-1.pdf>
+Package pdftex.def Info: Exercise-3_files/figure-latex/fig1c4-1.pdf  used on in
+put line 432.
+(pdftex.def)             Requested size: 414.56038pt x 374.40924pt.
+[9 <./Exercise-3_files/figure-latex/fig1c3-1.pdf>] [10 <./Exercise-3_files/figu
+re-latex/fig1c4-1.pdf>]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 463.
+[11]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 463.
+(./Exercise-3.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 463.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 463.
+Package rerunfilecheck Info: File `Exercise-3.out' has not changed.
+(rerunfilecheck)             Checksum: 45ABDDBD7FDC8A419621B98D6A1C0867;499.
+
+LaTeX Warning: There were undefined references.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 463.
+ ) 
+Here is how much of TeX's memory you used:
+ 13823 strings out of 492616
+ 206027 string characters out of 6129482
+ 321919 words of memory out of 5000000
+ 17437 multiletter control sequences out of 15000+600000
+ 61274 words of font info for 80 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 36i,21n,39p,973b,559s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2019/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/
+texlive/2019/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/20
+19/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/texlive/2019/texmf-dist/
+fonts/enc/dvips/lm/lm-mathex.enc}{/usr/local/texlive/2019/texmf-dist/fonts/enc/
+dvips/lm/lm-mathit.enc}</usr/local/texlive/2019/texmf-dist/fonts/type1/public/l
+m/lmbx10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/lm/lmbx12.p
+fb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/lm/lmbx7.pfb></usr/lo
+cal/texlive/2019/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/local/texliv
+e/2019/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/texlive/2019/tex
+mf-dist/fonts/type1/public/lm/lmmi5.pfb></usr/local/texlive/2019/texmf-dist/fon
+ts/type1/public/lm/lmmi7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/pu
+blic/lm/lmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/lm/lmr
+17.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/lm/lmr7.pfb></usr
+/local/texlive/2019/texmf-dist/fonts/type1/public/lm/lmri12.pfb></usr/local/tex
+live/2019/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2019/
+texmf-dist/fonts/type1/public/lm/lmsy5.pfb></usr/local/texlive/2019/texmf-dist/
+fonts/type1/public/lm/lmsy7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1
+/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2019/texmf-dist/fonts/t
+ype1/public/amsfonts/symbols/msbm7.pfb>
+Output written on Exercise-3.pdf (11 pages, 322016 bytes).
+PDF statistics:
+ 309 PDF objects out of 1000 (max. 8388607)
+ 228 compressed objects within 3 object streams
+ 65 named destinations out of 1000 (max. 500000)
+ 8265 words of extra memory for PDF output out of 10000 (max. 10000000)
+

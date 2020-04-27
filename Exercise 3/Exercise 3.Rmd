@@ -232,7 +232,7 @@ ggg2 <- ggplot(dat2, aes(x=x, y=y))+
  
 
 dat3 <- data.frame(x=seismic$x,y= seismic$y, z=MMAP)
-ggg3 <-ggplot(dat, aes(x=y, y=x, fill= factor(z)))+
+ggg3 <-ggplot(dat3, aes(x=y, y=x, fill= factor(z)))+
   geom_raster() +
   theme_bw()+
   theme(legend.title = element_blank(),panel.grid = element_blank(),axis.title = element_blank(),axis.text = element_blank(),axis.ticks = element_blank()) +
