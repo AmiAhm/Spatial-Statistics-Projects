@@ -48,11 +48,13 @@ complit <- read.csv("complit.dat", sep = " ")
 
 ```
 
-In this exercise, we study problems relating to Mosaic random fields (RF). We have observations of seismic data, denoted by $\lbrace d(\vect x); \vect x \in L \rbrace$ ;$d(\vect x) \in \mathbb{R} $, over a domain $\mathbf{D} \subset \mathbb{R}^2$. The seismic data is collected over a regular $(75 \times 75)$ grid $\mathbf{L}_\mathbf{D}$. 
+Assume that we have observed seismic data over a domain $D \in \mathbb{R}^2$. We want to identify the underlying lithology distribution over D, the underlying lithology of a point is either sand or shale, $\lbrace 1, 0 \rbrace$ respectively.
 
-Moreover, we have observations of the lithology distribution $\{sand, shale\}$ in a geological comparable domain $\mathbf{D}_c \subset \mathbb{R}^2$. These are collected on a regular $(66 \times 66)$ grid $\mathbf{L}_{\mathbf{D}_c}$, which has the same spacing as $\mathbf{L}_\mathbf{D}$, over $\mathbf{D}_c$.
+The observations have been collected on a regular $(75 \times 75)$ grid $L_d$, with seismic data being $\lbrace d(\vect x); \vect x \in L_d \rbrace$. Where $d(\vect x) \in \mathbb{R}$. 
 
-Let the underlying lithology distribution represented by a Mosaic RF be denoted by $\lbrace l(\vect x); \vect x \in L \rbrace ;l(\vect x) \in \{0,1 \}$. We want to identify the underlying lithology distribution over D, the underlying lithology of a point is either sand or shale, $\lbrace 1, 0 \rbrace$ respectively.
+We have observed the lithology distribution in a geologically comparable domain $D_c \in \mathbb{R}^2$. Assume that this was collected on a regular $(66 \times 66)$ grid $L_{D_c}$. 
+
+We assume that the underlying lithology distribution can be represented by a Mosaic RF $\lbrace l(\vect x); \vect x \in  L_D\rbrace, l(\vect x) \in \lbrace 0, 1 \rbrace$.  
 
 
 ## Problem 1a) 
