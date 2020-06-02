@@ -1,6 +1,6 @@
 ---
 title: "Project 1 - SPATIAL STATISTICS"
-author: "Kwaku Peprah Adjei, Amir Ahmed"
+author: "Amir Ahmed - Candidate Number: 10003"
 #date: "1/23/2020"
 output:
   pdf_document:
@@ -395,7 +395,7 @@ We also assume we have an observation error $\sigma^2_\epsilon = \lbrace 0, 0.25
    \epsilon(x) \text{ and } \epsilon(x') \text{ independent identically distributed} 
 \end{gather}
 
-As we both $\epsilon(x)$ and $r(x)$ are Gaussian, a linear product of the two would also be. 
+As $\epsilon(x)$ and $r(x)$ are Gaussian, a linear product of the two would also be. 
 
 We further note:
 \begin{equation}
@@ -409,7 +409,7 @@ When $x\neq x'$
         &= \sigma_r^2\rho_r(\tau)
     \end{split}
 \end{equation*}
-And: 
+otherwise: 
 \begin{equation}
     \begin{split}
         \Cov(d(x), d(x)) &= \Cov(r(x)+\epsilon(x), r(x) + \epsilon(x)) \\ 
@@ -437,7 +437,7 @@ The value $\sigma_e^2$ would then have the following likelihood function:
 \end{equation}
 The integral 
 \begin{equation}
-    \int_{0}^{\infty}L(\sigma_e^2 | \vect d(\vect x), \sigma_r^2)d\sigma^2 = \int_{0}^{\infty}p(\vect d(\vect x)|\sigma_r^2, \sigma_e^2) d\sigma^2
+    \int_{0}^{\infty}L(\sigma_e^2 | \vect d(\vect x), \sigma_r^2)d\sigma^2
 \end{equation}
 goes to infinity, thus $L(\sigma_e^2 | \vect d(\vect x), \sigma_r^2)$ is not a pdf. If we try to estimate $\sigma^2_\epsilon$ by the expected value of $\sigma_e^2$ derived when believing $L(\sigma^2_\epsilon|\cdot)$ is a pdf, we would expect values that goes to infinity, which would be wrong. 
 
@@ -448,7 +448,7 @@ goes to infinity, thus $L(\sigma_e^2 | \vect d(\vect x), \sigma_r^2)$ is not a p
 Assume now that $\sigma_r^2 = 5$ and that we have observed $\vect d(\vect y)$ with error $\sigma_\epsilon^2 = \in \lbrace 0, 0.25 \rbrace$. Want to find the distribution of $\left[ \vect r | \vect d \right]$. Know that both $\vect r$ and $\vect d$ are multivariate normal. Thus conditioning $\vect r$ on $\vect d$ would give a multivariate normal distribution with the following parameters: 
 
 \begin{equation}
-     \vect\mu_{\vect l | \vect d} = \vect \mu_r+ \matr \Sigma_{\vect r, \vect d} \matr \Sigma_{\vect d}^{-1}(\vect d - \vect \mu_{\vect d})
+     \vect\mu_{\vect r | \vect d} = \vect \mu_r+ \matr \Sigma_{\vect r, \vect d} \matr \Sigma_{\vect d}^{-1}(\vect d - \vect \mu_{\vect d})
 \end{equation}
 
 \begin{equation}
@@ -662,26 +662,26 @@ The results are illustrated in Figure \ref{fig:fig1e2}. We also include the theo
 Want to evaluate 
 
 \begin{equation}
-    A_r = \int_D I(r(x) > 2)dx
+    A_r = \int_D I(r(x) > 2)(r(x)-2) dx
 \end{equation}
 
 ```{r fig1f1, fig.height=4, fig.width=7, fig.cap="\\label{fig:fig1f1} Posterior estimation 100 realisation, matern $\\sigma^2 = 5$, $\\nu = 3$", fig.align="center" }
 draw <- generate_plot2("", 0)$draw
-est_int <- apply(draw, 2, function(x) length(x[x>2]))
+est_int <- apply(draw, 2, function(x) sum((x>2)*(x-2)))
 mean_length <- mean(est_int)
 var_length <- var(est_int)
 
 mu.d = rep(0, length(dd))
 mu.r = rep(0, length(xx))
-sigma.rr= cov.matr(xx,xx,  sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+sigma.rr= cov.matr(xx,xx, sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+  
+  sigma.dd = cov.matr(dd, dd,  sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+  sigma.rd = cov.matr(xx, dd, sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
+  sigma.dr = t(sigma.rd)
+  sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
+  mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
 
-sigma.dd = cov.matr(dd, dd, sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
-sigma.rd = cov.matr(xx, dd,  sigma2 = sigma2, nu = phi, cov.fun = cov.fun, tau.fun = tau.fun)
-sigma.dr = t(sigma.rd)
-sigma.r.d = sigma.rr - sigma.rd %*% solve(sigma.dd) %*% sigma.dr
-mu.r.d. = mu.r + sigma.rd %*% solve(sigma.dd) %*% (ddy-mu.d)
-
-tilde.A <- sum(mu.r.d. > 2)
+tilde.A <- sum((mu.r.d. > 2)*(mu.r.d. - 2))
 
 # 90 percent confidence:
 c = qnorm(p = 0.95)
@@ -752,83 +752,38 @@ p <- p + scale_y_continuous(sec.axis = sec_axis(~(.+5)*(1/plot.height), name = T
 p
 ```
 
-The situation is illustrated in Figure \ref{fig:fig1f1}
+The situation with $I(r(x)>2)$ is displayed in Figure \ref{fig:fig1f1}.
 
 
-A prediction of Â using our 100 realizations from the posterior model with $\sigma_\epsilon^2$ is:
+A prediction of the integral using our 100 realizations from the posterior model with $\sigma_\epsilon^2$ is:
+
 \begin{equation}
-    \hat A_r = \frac{1}{100}\sum_{i=1}^{100}\sum_{x\in L}I(r_i(x)>2)
+    \hat{A}_r = \frac{1}{100}\sum_{i=1}^{100}\sum_{x\in L}I(r_i(x)>2)(r(x)-2)
 \end{equation}
-Applying this to our realisation we get: Â = `r mean_length` and Var(Â ) = `r var_length`
 
-Where we use the approximation:
-\begin{equation}
-    A_r = \int_D I(r(x) > 2)dx \approx \sum_{x \in L}I(r(x)>2) dx 
-\end{equation}
+
+Applying this to our realisation we get: $\hat A_r =$ `r mean_length` and $Var(\hat A) =$ `r var_length`
+
 Another estimator is: 
 \begin{equation}
-    \tilde A_r = \sum_{x \in L} I(\hat r(x) > 2)
+    \tilde A_r = \sum_{x \in L} I(\hat r(x) > 2)(\hat r(x) - 2)
 \end{equation}
-With our data we get: Ã =  `r tilde.A`
-
-We note that in our case $Â_r > Ã_r$. 
+With our data we get:  $\tilde A_r =$  `r tilde.A`
 
 
 If we let:
 \begin{equation}
-    g(r(x)) = \int_D I(r(x) > 2) dx
+    g(r(x)) = \int_D I(r(x) > 2)(r(x) - 2) dx
 \end{equation}
 Then $g(x)$ is convex as it is an integral of a positive value. 
 
 Using Jensen's Inequality we thus get: 
 \begin{equation}
- Eg(r(x)) \geq g(Er(x)) = \int_D I(Er(x) > 2) =\int_D I(\hat r(x) > 2)
+ Eg(r(x)) \geq g(Er(x)) = \int_D I(Er(x) > 2)(Er(x) - 2) = \tilde A_r
 \end{equation}
 The same would be the case for the discretized stimators, i.e. we have:
 $$E\hat A_r \geq \tilde A_r$$
-And is why we expect $\hat A_r > \tilde A_r$. Which is also what we observed. 
-
-Another way to look at the problem is the following:
-
-Let $Y_{ij}$ be that event that the j-th observation at the i-th measurement point ($0 \leq i \leq 50$) is over or under 2 in the posterior model. We define:
-\begin{equation}
-    \begin{split}
-        & Y_{ij} := I(r(X_{ij})> 2)
-    \end{split}
-\end{equation}
-Where $X_{ij}$ is the j-th observation positionat the i-th realisation of the posterior. As the 100 posterior realisations are identically distributed  and independent. Each $Y_{ij}$ is independent grouped for position j.  Then $Y_{ij}$ is Bernoulli distributed. With probability $p_{i}$ of being higher than 2. Where:
-
-\begin{equation}
-    p_i = 1 - \Phi\left(\frac{2 -  \mu_i}{\sigma_i}\right)
-\end{equation}
-Where $\mu_i = \left[\vect \mu_{l|d}\right]_i$ and $\sigma_i^2 = \left[\matr \Sigma_{l|d}\right]_{ii}$
-
-We know that $\hat p_i = 1/100\sum_{i=1}^{100}Y_{ij}$ is an unbiased estimator for $p_i$
-
-The theoretical and estimated values of $p_i$ are illustrated in Figure \ref{referenceHere}, and seem to match the situation and each other quite well. They are scaled such that the height of the plot (-5, 5) would be $p_i = 1$ 
-
-This thinking can also be applied to estimating $A_r$
-
-One alternative $\hat A_r$ is: 
-\begin{equation}
-    \begin{split}
-        \hat A_r =  \frac{1}{100}\sum_i^{50}w\sum_j^{100}I(X_{ij} > 2)  
-    \end{split}
-\end{equation}
-We note that:
-\begin{equation}
-    \begin{split}
-        E\hat A_r &=  \frac{1}{100}\sum_i^{50}w\sum_j^{100}EI(X_{ij} > 2) \\ &=   \frac{1}{100}\sum_{i=1}^{50}w\sum_{j=1}^{100}\left[1 - \Phi\left(\frac{2 -  \mu_i}{\sigma_i}\right)\right] \\
-        &= \sum_i^{50}wp_i
-    \end{split}
-\end{equation}
-Whre $w$ is the width between each observation, in our case $w=1$. We see that when number of observations goes to infinity, the above sum goes toward the integral we want to estimate. 
-
-This can also be used to show that we expect $\hat A > \tilde A$. By using that:
-\begin{equation}
-    P(\hat r(x_i) > 2) = 1 - \Phi\left(\frac{2-\mu_i}{\sigma_i}\sqrt{n}\right) < 1 - \Phi\left(\frac{2-\mu_i}{\sigma_i}\right)
-\end{equation}
-The inequality can be easily proven by using this. 
+And is why we expect $\hat A_r > \tilde A_r$. Which is also what we observed.
 
 # Problem 1g)
 We have studied the matern and the powered exponential correlation function, and applied them to simulated data, to estiamte posteriors and their confidence. We find it interesteing how a change in the $\nu$ seem to change the differentiability of the end smoothness. Overall the empirical estimation methods seems to work well and are consistent with theory. 
@@ -1278,7 +1233,7 @@ p <- ggarrange(p1, p2,p3,p4, nrow = 2, ncol = 2, common.legend = T, legend = "bo
 p
 ```
 
-These variograms are displayed in Figure \ref{fig:fig3d2}. They seem to vary qutite much, but that can probably be blamed on a low amount of observation points. As we draw a very limited amount of points, some distances will be less represented than others, which will cause large variations in estimation. This can especially be seen for $n=9$
+These variograms are displayed in Figure \ref{fig:fig3d2}. They seem to vary quite much, but that can probably be blamed on a low amount of observation points. As we draw a very limited amount of points, some distances will be less represented than others, which will cause large variations in estimation. This can especially be seen for $n=9$.
 
 
 # Problem 3f
